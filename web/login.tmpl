@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Photos login</title>
+<%1%>
+<link rel="stylesheet" href="photos_style.css" type="text/css" media="screen" />
+
+<style>
+.login {
+  position: relative;
+  margin: 30px auto;
+  padding: 20px 20px 20px;
+  width: 310px;
+  background: rgb(245, 245, 245);
+  border-radius: 3px;
+  -webkit-box-shadow: 0 0 200px rgba(255, 255, 255, 0.5), 0 1px 2px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 200px rgba(255, 255, 255, 0.5), 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.login p {
+  margin: 20px 0 0;
+}
+
+.login input[type=text], .login input[type=password] {
+  width: 300px;
+}
+
+input {
+  font-family: 'Lucida Grande', Tahoma, Verdana, sans-serif;
+  font-size: 14px;
+}
+
+input[type=text], input[type=password] {
+  margin: 5px;
+  padding: 0 10px;
+  width: 200px;
+  height: 34px;
+  color: #404040;
+  background: white;
+  border: 1px solid;
+  border-color: #c4c4c4 #d1d1d1 #d4d4d4;
+  border-radius: 1px;
+  outline: 5px solid #ececec;
+  -moz-outline-radius: 3px;
+}
+
+input[type=submit] {
+  padding: 0 18px;
+  height: 29px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #7c7c7c;
+  text-shadow: 0 1px #e3f1f1;
+  background: #cde5ef;
+  border: 1px solid;
+  border-color: #cccccc #cacaca #c9c9c9;
+  border-radius: 16px;
+  outline: 0;
+  -webkit-box-sizing: content-box;
+  -moz-box-sizing: content-box;
+  box-sizing: content-box;
+  background-image: -webkit-linear-gradient(top, #edf5f8, #cde5ef);
+  background-image: -moz-linear-gradient(top, #edf5f8, #cde5ef);
+  background-image: -o-linear-gradient(top, #edf5f8, #cde5ef);
+  background-image: linear-gradient(to bottom, #edf5f8, #eeeeee);
+  -webkit-box-shadow: inset 0 1px white, 0 1px 2px rgba(0, 0, 0, 0.15);
+  box-shadow: inset 0 1px white, 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+input[type=submit]:active {
+  background: #cde5ef;
+  border-color: #c4c4c4 #c7c7c7 #d3d3d3;
+  -webkit-box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.2);
+  box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.2);
+}
+</style>
+</head>
+
+<body>
+<%2%>
+<br>
+<br>
+<div class="login">
+<form action="login" method="post">
+    <input type="text" placeholder="Username" required name="username" autofocus/><br>
+    <input type="password" placeholder="Password" required name="password"/><br><br>
+    <input type="submit" value="Log In"/>
+</form>
+</div>
+</body>
+</html>

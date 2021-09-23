@@ -1,0 +1,138 @@
+
+.breadcrumb {
+	display: inline-block;
+	overflow: hidden;
+	/* border-radius: 5px; */
+}
+
+.breadcrumb a {
+	outline: none;
+	display: block;
+	float: left;
+	font-size: 12px;
+	line-height: 24px;
+	padding: 0 10px 0 16px;
+    position: relative;
+    background: #575757;
+    color: white;
+    border: 1px solid #353535;
+}
+
+.breadcrumb a:first-child {
+	padding-left: 16px;
+    border-radius: 5px 0 0 5px;
+}
+
+.breadcrumb a:first-child:before {
+	left: 14px;
+}
+
+.breadcrumb a:last-child {
+	border-radius: 0 5px 5px 0;
+	padding-right: 20px;
+}
+
+.breadcrumb a.active {
+    text-decoration: none;
+    background: #686868;
+}
+
+.breadcrumb a.active:after {
+    background: #686868;
+}
+
+.breadcrumb a:hover{
+    background: rgb(148, 148, 148);
+    text-decoration: underline;
+}
+.breadcrumb a:hover:after {
+	background: rgb(148, 148, 148);
+}
+
+.breadcrumb a:after {
+	content: '';
+	position: absolute;
+	top: 0; 
+	right: -8px;
+
+	width: 24px; 
+	height: 24px;
+
+    transform: scale(0.707) rotate(45deg);
+
+	z-index: 1;
+	border-radius: 0 5px 0 50px;
+}
+
+.breadcrumb a:last-child:after {
+	content: none;
+}
+
+.locationChip {
+    display: inline-block;
+    margin: 5px 10px 5px 10px;
+    padding: 0 25px;
+    height: 50px;
+    font-size: 18px;
+    font-weight: bold;
+    line-height: 50px;
+    border-radius: 0px;
+    background-color: #b1b1b1;
+  }
+  
+.locationChip img {
+    float: left;
+    margin: 0 10px 0 -25px;
+    height: 50px;
+    width: 50px;
+    border-radius: 40%;
+}
+
+.locationPanel {
+    background: #fff;
+    border-radius: 5px;
+    overflow: hidden;
+    margin: 10px;
+    box-shadow: 0 4px 12px rgba(184, 184, 184, 0.5);
+}
+
+.locationPanel-header {
+    display: flex;
+    font-size: 19px;
+    font-weight: bold;
+    align-items: center;
+    justify-content: space-between;
+    /* margin-bottom: 10px; */
+    padding: 10px 15px;
+    background: #fafafa;
+}
+
+.locationPanel-body {
+    padding: 5px 15px;
+}
+
+.locationPanel-footer {
+    padding: 5px 15px 5px 15px;
+    background: #fafafa;
+}
+
+.subLocationChip {
+    display: inline-block;
+    margin: 5px 10px 5px 10px;
+    padding: 0 25px;
+    height: 33px;
+    font-size: 14px;
+    line-height: 33px;
+    border-radius: 5px;
+    background-color: #f1f1f1;
+    border: 1px solid #b1b1b1;
+  }
+  
+.subLocationChip img {
+    float: left;
+    margin: 0 10px 0 -25px;
+    height: 31px;
+    width: 32px;
+    /* background-color: #ffffff; */
+    border-radius: 20%;
+}

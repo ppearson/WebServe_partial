@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Photos - Locations gallery</title>
+<%1%>
+<link rel="stylesheet" href="photos_style.css" type="text/css" media="screen"/>
+<link rel="stylesheet" href="photostream_gallery.css" type="text/css" media="screen"/>
+<link rel="stylesheet" href="locations.css" type="text/css" media="screen"/>
+<script src='core.js'></script>
+<script src='view_settings.js'></script>
+<script src="lazysizes.min.js" async=""></script>
+</head>
+
+<body onload="loadViewSettings('locations_')">
+
+<script>
+  var redirectToMainSlideshow = function() {
+      var currentURL = window.location.href;
+      if (currentURL.indexOf("?") != -1) {
+          window.location.href = currentURL + "&slideshow=1";
+          
+      }
+      else {
+          window.location.href = currentURL + "?slideshow=1";
+      }
+    };
+</script>
+
+<%2%>
+
+<div id="gallery" class="gallery">
+
+<%3%>
+
+</div>
+<br>
+
+<div class="center">
+<%4%>
+</div>
+<br>
+<br>
+
+</body>
+</html>

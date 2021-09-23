@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Photos - Dates gallery</title>
+<%1%>
+<link rel="stylesheet" href="photos_style.css" type="text/css" media="screen"/>
+<link rel="stylesheet" href="dates_gallery.css" type="text/css" media="screen"/>
+<script src='core.js'></script>
+<script src='view_settings.js'></script>
+<script src="lazysizes.min.js" async=""></script>
+</head>
+<body onload="loadViewSettings('dates_')">
+
+<script>
+  var redirectToMainSlideshow = function() {
+      var currentURL = window.location.href;
+      if (currentURL.indexOf("?") != -1) {
+          window.location.href = currentURL + "&slideshow=1";
+          
+      }
+      else {
+          window.location.href = currentURL + "?slideshow=1";
+      }
+    };
+</script>
+
+<%2%>
+
+<div class="sidenav">
+<%3%>
+</div>
+
+<div class="main">
+<%4%>
+</div>
+
+<script>
+    var dropdown = document.getElementsByClassName("dropdown-btn");
+    var i;
+
+    for (i = 0; i < dropdown.length; i++) {
+      dropdown[i].addEventListener("click", function() {
+        this.classList.toggle("active");
+        var dropdownContent = this.nextElementSibling;
+        if (dropdownContent.style.display === "block") {
+            dropdownContent.style.display = "none";
+        } else {
+            dropdownContent.style.display = "block";
+        }
+      });
+    }
+</script>
+
+</body>
+</html>

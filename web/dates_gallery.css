@@ -1,0 +1,90 @@
+/* Fixed sidenav, full height */
+.sidenav {
+    height: 100%;
+    width: 130px;
+    position: fixed;
+    z-index: 1;
+    top: 38;
+    left: 0;
+    background-color: #333;
+    overflow-x: hidden;
+    padding-top: 20px;
+}
+
+/* Style the sidenav links and the dropdown button */
+.sidenav a, .dropdown-btn {
+    padding: 6px 8px 6px 16px;
+    text-decoration: none;
+    font-size: 16px;
+    color: #999999;
+    display: block;
+    border: none;
+    background: none;
+    width:100%;
+    text-align: left;
+    cursor: pointer;
+    outline: none;
+}
+
+/* On mouse-over */
+.sidenav a:hover, .dropdown-btn:hover {
+    color: #f1f1f1;
+}
+
+/* Add an active class to the active dropdown button */
+.active {
+    background-color: rgb(150, 150, 150);
+    color: white;
+}
+
+/* Dropdown container (hidden by default). Optional: add a lighter background color and some left padding to change the design of the dropdown content */
+.dropdown-container {
+    display: none;
+    background-color: #444;
+    padding-left: 10px;
+}
+
+.activeMonth {
+    background-color: rgb(99, 99, 99);
+    color: white;
+}
+
+.dropdown-container a {
+    font-size: 14px;
+}
+
+/* Main content */
+.main {
+    margin-left: 130px; /* Same as the width of the sidenav */
+    font-size: 16px; /* Increased text to enable scrolling */
+    padding: 0px 1px;
+}
+
+.main h3 {
+    padding: 0px 3px;
+    margin-top: 3px;
+    margin-bottom: 3px;
+}
+
+.gallery {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-wrap: wrap;
+    flex-wrap: wrap;
+    margin: 2px;
+  }
+  .gallery img {
+    width: 100%;
+  }
+  .gallery_item {
+    position: relative;
+    margin: 2px;
+    line-height: 0;
+    cursor: pointer;
+  }
+  .gallery_item:nth-last-child(1),
+  .gallery_item:nth-last-child(2),
+  .gallery_item:nth-last-child(3) {
+    max-width: 400px;
+  }

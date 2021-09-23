@@ -1,0 +1,44 @@
+    <div class="PopupPanel" id="viewSettingsPanel">
+        <h3>View settings</h3>
+
+        <p id="screenRes"></p>
+
+        Thumbnail size:
+        <select id="dates_thumbnailSize">
+            <option value="400">400</option>
+            <option value="500">500</option>
+            <option value="600">600</option>
+            <option value="700">700</option>
+        </select><br><br>
+
+        <label><input type="checkbox" id="dates_galleryLinkToSlideshow">Gallery images link to Slideshow</label><br>
+        <br>
+
+        <label><input type="checkbox" id="dates_lazyLoading">Lazy image loading</label><br>
+        <br>
+
+        Source Types:<br>
+        <label><input type="checkbox" id="dates_typeDrone">Drone</label><br>
+        <label><input type="checkbox" id="dates_typeSLR">SLR</label>
+        <br>
+        <br>
+
+        Min rating to show:<br>
+        <span class="starRating">
+            <input id="rating5" type="radio" name="dates_viewRating" value="5">
+            <label for="rating5">5</label>
+            <input id="rating4" type="radio" name="dates_viewRating" value="4">
+            <label for="rating4">4</label>
+            <input id="rating3" type="radio" name="dates_viewRating" value="3">
+            <label for="rating3">3</label>
+            <input id="rating2" type="radio" name="dates_viewRating" value="2">
+            <label for="rating2">2</label>
+            <input id="rating1" type="radio" name="dates_viewRating" value="1">
+            <label for="rating1">1</label>
+        </span>
+        <br><br>
+        
+        <button type="button" class="btn close" onclick="closeViewSettingsPopupPanel('dates_')">Close</button>
+        <button type="button" class="btn apply" onclick="applyViewSettingsPopupPanel('dates_')">Apply</button>
+    </div>
+    

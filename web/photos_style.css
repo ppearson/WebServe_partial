@@ -1,0 +1,154 @@
+body {
+  margin: 0px;
+  padding-left: 0px;
+  font-size: 82%;
+  font-family: Verdana, Arial, Helvetica, sans-serif;
+}
+
+.topnav {
+  background-color: #333;
+  overflow: hidden;
+}
+
+.topnav a {
+  float: left;
+  color: #f2f2f2;
+  text-align: center;
+  padding: 8px 12px;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.topnav a:hover {
+  background-color: #ddd;
+  color: black;
+}
+
+.topnav a.active {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.subbar {
+  background-color: #333;
+  overflow: hidden;
+}
+
+.subbar a {
+  float: left;
+  padding: 6px 8px;
+  text-align: center;
+  display: block;
+  color: #ebebeb;
+  text-decoration: none;
+}
+
+.subbar a:hover {
+  background-color: #ddd;
+  color: black;
+}
+
+.subbarLeft {
+  float:left;
+}
+
+.subbarRight {
+  float:right;
+  padding: 6px 2px;
+}
+
+.PopupPanel {
+  display: none;
+  position: fixed;
+  right: 5%;
+  background-color: #f1f1f1;
+  width: 360px;
+  border-radius: 6px;
+  border: 2px solid #353535;
+  z-index: 15;
+  padding: 4px;
+  box-shadow: 3px 10px 15px rgba(21, 21, 21, 0.75);
+}
+
+.PopupPanel h3 {
+  margin-top: 2px;
+}
+
+.PopupPanel::before {
+  content: "";
+  position: fixed;
+  bottom: 100%;
+  right: 5%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent transparent #cecece transparent;
+}
+
+.starRating:not(old) {
+  display        : inline-block;
+  width          : 7.5em;
+  height         : 1.5em;
+  overflow       : hidden;
+  vertical-align : bottom;
+}
+
+.starRating:not(old) > input {
+  margin-right : -100%;
+  opacity      : 0;
+}
+
+.starRating:not(old) > label {
+  display         : block;
+  float           : right;
+  position        : relative;
+  background      : url('icons/star-off.svg');
+  background-size : contain;
+}
+
+.starRating:not(old) > label:before {
+  content         : '';
+  display         : block;
+  width           : 1.5em;
+  height          : 1.5em;
+  background      : url('icons/star-on.svg');
+  background-size : contain;
+  opacity         : 0;
+  transition      : opacity 0.2s linear;
+}
+
+.starRating:not(old) > label:hover:before,
+.starRating:not(old) > label:hover ~ label:before,
+.starRating:not(:hover) > :checked ~ label:before {
+  opacity : 1;
+}
+
+.center {
+  text-align: center;
+}
+
+.pagination {
+  display: inline-block;
+}
+
+.pagination a {
+  color: black;
+  float: left;
+  padding: 8px 16px;
+  text-decoration: none;
+  transition: background-color .3s;
+  border: 1px solid #ddd;
+  margin: 0 4px;
+}
+
+.pagination a.active {
+  background-color: #777;
+  color: white;
+  border: 1px solid #777;
+}
+
+.pagination a:hover:not(.active) {
+  background-color: #ddd;
+}
