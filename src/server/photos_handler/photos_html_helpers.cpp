@@ -316,6 +316,73 @@ std::string PhotosHTMLHelpers::getDatesPhotosContentHTML(PhotoResultsPtr photoRe
 	unsigned int index = 0; // index for slideshow goto link
 
 	bool useSlideShowURL = !slideShowURL.empty();
+	
+	auto processPhotoItems = [&] (const std::vector<const PhotoItem*>* photos)
+	{
+		for (const PhotoItem* pPhoto : *photos)
+		{
+			const PhotoRepresentations::PhotoRep* pThumbnailRepr = pPhoto->getRepresentations().getSmallestRepresentationMatchingCriteriaMinDimension(thumbnailSize);
+			if (!pThumbnailRepr)
+			{
+				// for the moment, ignore...
+				continue;
+			}
+			float aspectRatio = pThumbnailRepr->getAspectRatio();
+			
+			// try and bodge very wide images, so that we get higher res ones for those
+			if (aspectRatio > 2.2f)
+			{
+				const PhotoRepresentations::PhotoRep* pThumbnailReprBigger = pPhoto->getRepresentations().getSmallestRepresentationMatchingCriteriaMinDimension(thumbnailSize + 200);
+				if (pThumbnailReprBigger)
+				{
+					pThumbnailRepr = pThumbnailReprBigger;
+				}
+			}
+			
+			const std::string& thumbNailImage = pThumbnailRepr->getRelativeFilePath();
+
+			sprintf(szTemp, "flex-basis: %upx; flex-grow: %f;", (unsigned int )(mainWidth * aspectRatio), aspectRatio);
+
+			const PhotoRepresentations::PhotoRep* pLargeRep = pPhoto->getRepresentations().getFirstRepresentationMatchingCriteriaMinDimension(1000, true);
+
+			std::string styleString = szTemp;
+
+			finalHTML += R"(<div class="gallery_item" style=")" + styleString + "\">\n";
+
+			if (pLargeRep)
+			{
+				if (useSlideShowURL)
+				{
+					sprintf(szTemp, "gotoIndex=%u", index);
+
+					std::string url = slideShowURL + szTemp;
+					finalHTML += R"( <a target="_blank" href=")" + url + "\">\n";
+				}
+				else
+				{
+					finalHTML += R"( <a target="_blank" href=")" + pLargeRep->getRelativeFilePath() + "\">\n";
+				}
+			}
+
+			if (lazyLoad)
+			{
+				finalHTML += " <img data-src=\"" + thumbNailImage + "\" class=\"lazyload\"/>\n";
+			}
+			else
+			{
+				finalHTML += " <img src=\"" + thumbNailImage + "\">\n";
+			}
+
+			if (pLargeRep)
+			{
+				finalHTML += " </a>\n";
+			}
+
+			index++;
+
+			finalHTML += "</div>\n";
+		}
+	};
 
 	if (dateParams.type == DateParams::eYearAndMonth)
 	{
@@ -325,69 +392,7 @@ std::string PhotosHTMLHelpers::getDatesPhotosContentHTML(PhotoResultsPtr photoRe
 
 		if (photos)
 		{
-			for (const PhotoItem* pPhoto : *photos)
-			{
-				const PhotoRepresentations::PhotoRep* pThumbnailRepr = pPhoto->getRepresentations().getSmallestRepresentationMatchingCriteriaMinDimension(thumbnailSize);
-				if (!pThumbnailRepr)
-				{
-					// for the moment, ignore...
-					continue;
-				}
-				float aspectRatio = pThumbnailRepr->getAspectRatio();
-				
-				// try and bodge very wide images, so that we get higher res ones for those
-				if (aspectRatio > 2.2f)
-				{
-					const PhotoRepresentations::PhotoRep* pThumbnailReprBigger = pPhoto->getRepresentations().getSmallestRepresentationMatchingCriteriaMinDimension(thumbnailSize + 200);
-					if (pThumbnailReprBigger)
-					{
-						pThumbnailRepr = pThumbnailReprBigger;
-					}
-				}
-				
-				const std::string& thumbNailImage = pThumbnailRepr->getRelativeFilePath();
-
-				sprintf(szTemp, "flex-basis: %upx; flex-grow: %f;", (unsigned int )(mainWidth * aspectRatio), aspectRatio);
-
-				const PhotoRepresentations::PhotoRep* pLargeRep = pPhoto->getRepresentations().getFirstRepresentationMatchingCriteriaMinDimension(1000, true);
-
-				std::string styleString = szTemp;
-
-				finalHTML += R"(<div class="gallery_item" style=")" + styleString + "\">\n";
-
-				if (pLargeRep)
-				{
-					if (useSlideShowURL)
-					{
-						sprintf(szTemp, "gotoIndex=%u", index);
-
-						std::string url = slideShowURL + szTemp;
-						finalHTML += R"( <a target="_blank" href=")" + url + "\">\n";
-					}
-					else
-					{
-						finalHTML += R"( <a target="_blank" href=")" + pLargeRep->getRelativeFilePath() + "\">\n";
-					}
-				}
-
-				if (lazyLoad)
-				{
-					finalHTML += " <img data-src=\"" + thumbNailImage + "\" class=\"lazyload\"/>\n";
-				}
-				else
-				{
-					finalHTML += " <img src=\"" + thumbNailImage + "\">\n";
-				}
-
-				if (pLargeRep)
-				{
-					finalHTML += " </a>\n";
-				}
-
-				index++;
-
-				finalHTML += "</div>\n";
-			}
+			processPhotoItems(photos);
 		}
 
 		finalHTML += "</div>\n";
@@ -419,69 +424,7 @@ std::string PhotosHTMLHelpers::getDatesPhotosContentHTML(PhotoResultsPtr photoRe
 
 			if (photos)
 			{
-				for (const PhotoItem* pPhoto : *photos)
-				{
-					const PhotoRepresentations::PhotoRep* pThumbnailRepr = pPhoto->getRepresentations().getSmallestRepresentationMatchingCriteriaMinDimension(thumbnailSize);
-					if (!pThumbnailRepr)
-					{
-						// for the moment, ignore...
-						continue;
-					}
-					float aspectRatio = pThumbnailRepr->getAspectRatio();
-					
-					// try and bodge very wide images, so that we get higher res ones for those
-					if (aspectRatio > 2.2f)
-					{
-						const PhotoRepresentations::PhotoRep* pThumbnailReprBigger = pPhoto->getRepresentations().getSmallestRepresentationMatchingCriteriaMinDimension(thumbnailSize + 200);
-						if (pThumbnailReprBigger)
-						{
-							pThumbnailRepr = pThumbnailReprBigger;
-						}
-					}
-					
-					const std::string& thumbNailImage = pThumbnailRepr->getRelativeFilePath();
-
-					sprintf(szTemp, "flex-basis: %upx; flex-grow: %f;", (unsigned int )(mainWidth * aspectRatio), aspectRatio);
-
-					const PhotoRepresentations::PhotoRep* pLargeRep = pPhoto->getRepresentations().getFirstRepresentationMatchingCriteriaMinDimension(1000, true);
-
-					std::string styleString = szTemp;
-
-					finalHTML += R"(<div class="gallery_item" style=")" + styleString + "\">\n";
-
-					if (pLargeRep)
-					{
-						if (useSlideShowURL)
-						{
-							sprintf(szTemp, "gotoIndex=%u", index);
-
-							std::string url = slideShowURL + szTemp;
-							finalHTML += R"( <a target="_blank" href=")" + url + "\">\n";
-						}
-						else
-						{
-							finalHTML += R"( <a target="_blank" href=")" + pLargeRep->getRelativeFilePath() + "\">\n";
-						}
-					}
-
-					if (lazyLoad)
-					{
-						finalHTML += " <img data-src=\"" + thumbNailImage + "\" class=\"lazyload\"/>\n";
-					}
-					else
-					{
-						finalHTML += " <img src=\"" + thumbNailImage + "\">\n";
-					}
-
-					if (pLargeRep)
-					{
-						finalHTML += " </a>\n";
-					}
-
-					index ++;
-
-					finalHTML += "</div>\n";
-				}
+				processPhotoItems(photos);
 			}
 
 			finalHTML += "</div>\n";
@@ -491,10 +434,10 @@ std::string PhotosHTMLHelpers::getDatesPhotosContentHTML(PhotoResultsPtr photoRe
 	return finalHTML;
 }
 
-std::string PhotosHTMLHelpers::getLocationsLocationBarHTML(PhotoResultsPtr photoResults, const WebRequest& request)
+// could just have passed through the locationPath value directly, but we might want to do something a bit different
+// in the future, so...
+std::string PhotosHTMLHelpers::getLocationsLocationBarHTML(const WebRequest& request)
 {
-//	return "";
-
 	std::string currentLocationPath = request.getParam("locationPath");
 	if (currentLocationPath.empty())
 		return "";
@@ -538,7 +481,7 @@ std::string PhotosHTMLHelpers::getLocationsOverviewPageHTML(PhotoResultsPtr phot
 
 	if (!subLocationsNames.empty())
 	{
-		// we have further sub-locations, so list these locations + and their sub-locations
+		// we have further sub-locations, so list these locations and their sub-locations
 
 		for (const std::string& subName : subLocationsNames)
 		{
@@ -563,17 +506,15 @@ std::string PhotosHTMLHelpers::getLocationsOverviewPageHTML(PhotoResultsPtr phot
 			finalHTML += R"(<div class="locationPanel-body"><a href="locations?locationPath=)" + encodedLocationPath + "&gallery=1\">View all photos</a></div>\n";
 
 			finalHTML += "<div class=\"locationPanel-footer\">\n";
-			if (!subSubLocations.empty())
-			{
-				for (const std::string& subSubName : subSubLocations)
-				{
-					std::string encodedSubLocationPath = StringHelpers::simpleEncodeString(fullSubPath + "/" + subSubName);
-					finalHTML += "<div class=\"subLocationChip\">\n";
-					finalHTML += " <a href=\"locations?locationPath=" + encodedSubLocationPath + "&gallery=1\"><img src=\"icons/photo_stack.png\"></a>\n";
 
-					finalHTML += " <a href=\"locations?locationPath=" + encodedSubLocationPath + "\">" + subSubName + "</a>\n";
-					finalHTML += "</div>\n";
-				}
+			for (const std::string& subSubName : subSubLocations)
+			{
+				std::string encodedSubLocationPath = StringHelpers::simpleEncodeString(fullSubPath + "/" + subSubName);
+				finalHTML += "<div class=\"subLocationChip\">\n";
+				finalHTML += " <a href=\"locations?locationPath=" + encodedSubLocationPath + "&gallery=1\"><img src=\"icons/photo_stack.png\"></a>\n";
+
+				finalHTML += " <a href=\"locations?locationPath=" + encodedSubLocationPath + "\">" + subSubName + "</a>\n";
+				finalHTML += "</div>\n";
 			}
 
 			finalHTML += "</div>\n"; // end footer
@@ -584,25 +525,7 @@ std::string PhotosHTMLHelpers::getLocationsOverviewPageHTML(PhotoResultsPtr phot
 	else
 	{
 		// no further sub-locations, so just display photos
-	}
-
-
-
-	return finalHTML;
-}
-
-std::string PhotosHTMLHelpers::getLocationsGalleryContentHTML(PhotoResultsPtr photoResults, const WebRequest& request, bool overallLazyLoading)
-{
-	std::string finalHTML;
-
-	std::string currentLocationPath = request.getParam("locationPath");
-
-	const PhotoResultsLocationAccessor& rsLocationAccessor = photoResults->getLocationAccessor();
-
-	const std::vector<const PhotoItem*>* pPhotos = rsLocationAccessor.getPhotosForLocation(currentLocationPath);
-	if (!pPhotos)
-	{
-		return finalHTML;
+		// TODO: display some photos...
 	}
 
 	return finalHTML;
@@ -837,7 +760,7 @@ std::string PhotosHTMLHelpers::getPhotoSwipeJSItemList(const std::vector<const P
 		}
 		else
 		{
-			// otherwise, we don't...
+			// otherwise, we don't... - TODO: could combine these two?
 			sprintf(szTemp, "\t{\n\t\tsrc: '%s',\n\t\tw: %u,\n\t\th: %u\n\t}\n", imageLinkPath.c_str(), mainWidth, mainHeight);
 		}
 

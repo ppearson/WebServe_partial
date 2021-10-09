@@ -38,7 +38,6 @@ public:
 	std::vector<uint16_t> getListOfYears() const;
 	const std::vector<uint8_t>& getListOfMonthsForYear(unsigned int year) const;
 
-
 protected:
 
 	struct YearMonth

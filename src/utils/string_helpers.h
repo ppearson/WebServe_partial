@@ -48,6 +48,7 @@ public:
 
 	// do basic URL / %-encoding
 	static std::string simpleEncodeString(const std::string& inputString);
+	static std::string simpleDecodeString(const std::string& inputString);
 
 	static std::string base64Encode(const std::string& inputString);
 	static std::string base64Decode(const std::string& inputString);

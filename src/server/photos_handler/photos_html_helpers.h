@@ -63,9 +63,8 @@ public:
 	static std::string getDatesPhotosContentHTML(PhotoResultsPtr photoResults, const DateParams& dateParams, const WebRequest& request, bool overallLazyLoading,
 												 const std::string& slideShowURL, bool useURIForComponents);
 
-	static std::string getLocationsLocationBarHTML(PhotoResultsPtr photoResults, const WebRequest& request);
+	static std::string getLocationsLocationBarHTML(const WebRequest& request);
 	static std::string getLocationsOverviewPageHTML(PhotoResultsPtr photoResults, const WebRequest& request);
-	static std::string getLocationsGalleryContentHTML(PhotoResultsPtr photoResults, const WebRequest& request, bool overallLazyLoading);
 
 	static std::string getSimpleImageList1(const std::vector<PhotoItem>& photos);
 	static std::string getSimpleImageListWithinCustomDivTag(const std::vector<PhotoItem>& photos, const std::string& divTag);

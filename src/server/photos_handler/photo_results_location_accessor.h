@@ -36,15 +36,9 @@ public:
 
 	void build(const std::vector<const PhotoItem*>& rawItems);
 
-
 	std::vector<std::string> getSubLocationsForLocation(const std::string& locationPath) const;
 
 	const std::vector<const PhotoItem*>* getPhotosForLocation(const std::string& locationPath) const;
-
-	
-
-
-
 
 protected:
 	
@@ -58,8 +52,6 @@ protected:
 		std::string					name;
 		std::string					description;
 
-		std::vector<unsigned int>	subLocations;
-		std::vector<std::string>	subLocationNames;
 		std::map<HashValue, unsigned int>	subLocationLookup;
 		std::map<std::string, unsigned int>	subLocationLookupAlphabetical;
 

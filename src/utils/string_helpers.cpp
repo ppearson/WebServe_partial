@@ -205,6 +205,35 @@ std::string StringHelpers::simpleEncodeString(const std::string& inputString)
 	return outputString;
 }
 
+std::string StringHelpers::simpleDecodeString(const std::string& inputString)
+{
+	// convert hex encoded strings to native strings
+	std::string output = inputString;
+
+	size_t nHex = 0;
+	while ((nHex = output.find('%', nHex)) != std::string::npos)
+	{
+		std::string strHex = "0x" + output.substr(nHex + 1, 2);
+		char cChar = static_cast<char>(strtol(strHex.c_str(), nullptr, 16));
+		char szTemp[2];
+		memset(szTemp, 0, 2);
+		sprintf(szTemp, "%c", cChar);
+		std::string strChar(szTemp);
+
+		output.replace(nHex, 3, strChar);
+	}
+
+	// + to spaces
+
+	size_t nSpace = 0;
+	while ((nSpace = output.find('+', nSpace)) != std::string::npos)
+	{
+		output.replace(nSpace, 1, " ");
+	}
+
+	return output;
+}
+
 std::string StringHelpers::base64Encode(const std::string& inputString)
 {
 	std::string outputString;

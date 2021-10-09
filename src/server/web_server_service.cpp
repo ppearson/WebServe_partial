@@ -229,13 +229,18 @@ void WebServerService::start()
 		m_aThreadConfigs.emplace_back(WebServerThreadConfig(i, &m_configuration, &m_logger));
 	}
 	
+#if WEBSERVE_ENABLE_HTTPS_SUPPORT
 	// assumption here is only the secure socket layer will need this, which might need to be revisited...
 	bool createSocketLayerPerThreadContexts = m_pSecureSocketLayer->supportsPerThreadContext();
+#else
+	bool createSocketLayerPerThreadContext = false;
+#endif
 
 	for (unsigned int i = 0; i < m_configuration.getNumWorkerThreads(); i++)
 	{
 		WebServerThreadConfig* pThreadConfig = &m_aThreadConfigs[i];
 		
+#if WEBSERVE_ENABLE_HTTPS_SUPPORT
 		if (createSocketLayerPerThreadContexts)
 		{
 			// TODO: these leak...
@@ -245,6 +250,7 @@ void WebServerService::start()
 				pThreadConfig->pSLThreadContext = pNewThreadContext;
 			}
 		}
+#endif
 		
 		std::thread newThread = std::thread(&WebServerService::workerThreadFunction, this, pThreadConfig);
 		m_aWorkerThreads.emplace_back(std::move(newThread));
@@ -413,7 +419,6 @@ void WebServerService::acceptHTTPSConnectionThreadFunction()
 		if (m_mainSocketHTTPS.accept(newConnection.pRawSocket))
 		{
 			newConnection.pRawSocket->setLogger(&m_logger);
-
 
 			{
 				std::unique_lock<std::mutex> lock(m_lock);

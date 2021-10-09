@@ -194,136 +194,92 @@ WebRequestHandlerResult PhotosRequestHandler::handleRequest(RequestConnection& r
 	}
 
 	// work out if we have a further first level sub-dir
-	std::string directory;
+	std::string nextLevel;
 	std::string remainingURI;
 
 	bool unknown = false;
 
 	std::string responseString;
 
-	if (URIHelpers::splitFirstLevelDirectoryAndRemainder(requestPath, directory, remainingURI))
+	if (!URIHelpers::splitFirstLevelDirectoryAndRemainder(requestPath, nextLevel, remainingURI))
 	{
-		if (directory == "login")
+		nextLevel = requestPath;
+	}
+	
+	if (nextLevel == "login")
+	{
+		return handleLoginRequest(requestConnection, request);
+	}
+	
+	if (m_authenticationRequired)
+	{
+		if (!requestAuthenticationState.isAuthenticated())
 		{
-			return handleLoginRequest(requestConnection, request);
-		}
-		
-		if (m_authenticationRequired)
-		{
-			if (!requestAuthenticationState.isAuthenticated())
-			{
-				// don't allow...
-				WebResponseParams responseParams(configuration, requestConnection.https);
-				WebResponseGeneratorBasicText textResponse(404, "Not found.");
+			// don't allow...
+			WebResponseParams responseParams(configuration, requestConnection.https);
+			WebResponseGeneratorBasicText textResponse(404, "Not found.");
 
-				std::string responseString = textResponse.getResponseString(responseParams);
+			std::string responseString = textResponse.getResponseString(responseParams);
 
-				// send the response
-				requestConnection.pConnectionSocket->send(responseString);
-				
-				handleRequestResult.wasHandled = true;
-				return handleRequestResult;
-			}
-		}
-		
-		if (directory == "photostream")
-		{
-			return handlePhotostreamRequest(requestConnection, request, requestAuthenticationState);
-		}
-		else if (directory == "dates")
-		{
-			return handleDatesRequest(requestConnection, request, requestAuthenticationState, remainingURI);
-		}
-		else if (directory == "locations")
-		{
-			return handleLocationsRequest(requestConnection, request, requestAuthenticationState);
-		}
-		else if (directory == "status")
-		{
-			return handleStatusRequest(requestConnection, request, requestAuthenticationState);
-		}
-		else
-		{
-			unknown = true;
+			// send the response
+			requestConnection.pConnectionSocket->send(responseString);
+			
+			handleRequestResult.wasHandled = true;
+			return handleRequestResult;
 		}
 	}
-	else
+	
+	if (nextLevel == "photostream")
 	{
-		if (requestPath == "login")
-		{
-			return handleLoginRequest(requestConnection, request);
-		}
-		
-		if (m_authenticationRequired)
-		{
-			if (!requestAuthenticationState.isAuthenticated())
-			{
-				// don't allow...
-				WebResponseParams responseParams(configuration, requestConnection.https);
-				WebResponseGeneratorBasicText textResponse(404, "Not found.");
-
-				std::string responseString = textResponse.getResponseString(responseParams);
-
-				// send the response
-				requestConnection.pConnectionSocket->send(responseString);
-				
-				handleRequestResult.wasHandled = true;
-				return handleRequestResult;
-			}
-		}
-		
-		if (requestPath == "photostream")
-		{
-			return handlePhotostreamRequest(requestConnection, request, requestAuthenticationState);
-		}
-		else if (requestPath == "dates")
-		{
-			// there won't be any directory path after this
-			return handleDatesRequest(requestConnection, request, requestAuthenticationState, "");
-		}
-		else if (requestPath == "locations")
-		{
-			return handleLocationsRequest(requestConnection, request, requestAuthenticationState);
-		}
-		else if (requestPath == "status")
-		{
-			return handleStatusRequest(requestConnection, request, requestAuthenticationState);
-		}
+		return handlePhotostreamRequest(requestConnection, request, requestAuthenticationState);
+	}
+	else if (nextLevel == "dates")
+	{
+		// dates supports further directory levels...
+		return handleDatesRequest(requestConnection, request, requestAuthenticationState, remainingURI);
+	}
+	else if (nextLevel == "locations")
+	{
+		return handleLocationsRequest(requestConnection, request, requestAuthenticationState);
+	}
+	else if (nextLevel == "status")
+	{
+		return handleStatusRequest(requestConnection, request, requestAuthenticationState);
+	}
 /*		
-		else if (requestPath == "gallery_simple")
-		{
-			PhotoQueryEngine::QueryParams queryParams;
-			PhotoResultsPtr photoResults = m_photoCatalogue.getQueryEngine().getPhotoResults(queryParams);
+	else if (nextLevel == "gallery_simple")
+	{
+		PhotoQueryEngine::QueryParams queryParams;
+		PhotoResultsPtr photoResults = m_photoCatalogue.getQueryEngine().getPhotoResults(queryParams);
 
-			std::string photosListHTML = PhotosHTMLHelpers::getSimpleImageListWithinCustomDivTagWithStyle(photoResults, "gallery_item", 0, 0, 500, false);
-			std::string item = "test/gallery_simple3.tmpl";
+		std::string photosListHTML = PhotosHTMLHelpers::getSimpleImageListWithinCustomDivTagWithStyle(photoResults, "gallery_item", 0, 0, 500, false);
+		std::string item = "test/gallery_simple3.tmpl";
 
-			WebResponseGeneratorTemplateFile galleryResponse(FileHelpers::combinePaths(m_mainWebContentPath, item), photosListHTML);
-			responseString = galleryResponse.getResponseString(responseParams);
-		}
-		else if (requestPath == "gallery_advanced")
-		{
-			std::string photosListHTML = PhotosHTMLHelpers::getSimpleElementListWithinCustomDivTagWithBGImage(m_photoCatalogue.getRawItems(), "thumbnail", "thumbnail-wrapper");
-			std::string item = "test/gallery_advanced2.tmpl";
+		WebResponseGeneratorTemplateFile galleryResponse(FileHelpers::combinePaths(m_mainWebContentPath, item), photosListHTML);
+		responseString = galleryResponse.getResponseString(responseParams);
+	}
+	else if (nextLevel == "gallery_advanced")
+	{
+		std::string photosListHTML = PhotosHTMLHelpers::getSimpleElementListWithinCustomDivTagWithBGImage(m_photoCatalogue.getRawItems(), "thumbnail", "thumbnail-wrapper");
+		std::string item = "test/gallery_advanced2.tmpl";
 
-			WebResponseGeneratorTemplateFile galleryResponse(FileHelpers::combinePaths(m_mainWebContentPath, item), photosListHTML);
-			responseString = galleryResponse.getResponseString(responseParams);
-		}
-		else if (requestPath == "slide_show")
-		{
-			PhotoQueryEngine::QueryParams queryParams;
-			PhotoResultsPtr photoResults = m_photoCatalogue.getQueryEngine().getPhotoResults(queryParams);
+		WebResponseGeneratorTemplateFile galleryResponse(FileHelpers::combinePaths(m_mainWebContentPath, item), photosListHTML);
+		responseString = galleryResponse.getResponseString(responseParams);
+	}
+	else if (nextLevel == "slide_show")
+	{
+		PhotoQueryEngine::QueryParams queryParams;
+		PhotoResultsPtr photoResults = m_photoCatalogue.getQueryEngine().getPhotoResults(queryParams);
 
-			std::string photosListJS = PhotosHTMLHelpers::getPhotoSwipeJSItemList(photoResults, 0, 0);
-			std::string item = "test/slideshow1.tmpl";
+		std::string photosListJS = PhotosHTMLHelpers::getPhotoSwipeJSItemList(photoResults, 0, 0);
+		std::string item = "test/slideshow1.tmpl";
 
-			WebResponseGeneratorTemplateFile slideShowResponse(FileHelpers::combinePaths(m_mainWebContentPath, item), photosListJS);
-			responseString = slideShowResponse.getResponseString(responseParams);
-		}
-*/		else
-		{
-			unknown = true;
-		}
+		WebResponseGeneratorTemplateFile slideShowResponse(FileHelpers::combinePaths(m_mainWebContentPath, item), photosListJS);
+		responseString = slideShowResponse.getResponseString(responseParams);
+	}
+*/	else
+	{
+		unknown = true;
 	}
 
 	if (unknown)
@@ -357,8 +313,7 @@ WebRequestHandlerResult PhotosRequestHandler::handleRequest(RequestConnection& r
 		{
 			siteNavHeaderHTML += "<br><br>Logged out.<br>\n";
 		}
-		std::string templateFile = "photos_main.tmpl";
-		WebResponseGeneratorTemplateFile responseGen(FileHelpers::combinePaths(m_mainWebContentPath, templateFile), m_htmlBaseHRef, siteNavHeaderHTML);
+		WebResponseGeneratorTemplateFile responseGen(FileHelpers::combinePaths(m_mainWebContentPath, "photos_main.tmpl"), m_htmlBaseHRef, siteNavHeaderHTML);
 		responseString = responseGen.getResponseString(responseParams);
 	}
 
@@ -384,8 +339,7 @@ WebRequestHandlerResult PhotosRequestHandler::handleLoginRequest(RequestConnecti
 		// it's a GET type, so display the login form
 
 		std::string siteNavHeaderHTML = m_photosHTMLHelpers.generateMainSitenavCode(PhotosHTMLHelpers::GenMainSitenavCodeParams(false, false, ""));
-		std::string templateFile = "login.tmpl";
-		WebResponseGeneratorTemplateFile responseGen(FileHelpers::combinePaths(m_mainWebContentPath, templateFile), m_htmlBaseHRef, siteNavHeaderHTML);
+		WebResponseGeneratorTemplateFile responseGen(FileHelpers::combinePaths(m_mainWebContentPath, "login.tmpl"), m_htmlBaseHRef, siteNavHeaderHTML);
 		responseString = responseGen.getResponseString(responseParams);
 	}
 	else if (request.getRequestType() == WebRequest::eRequestPOST)
@@ -444,21 +398,21 @@ WebRequestHandlerResult PhotosRequestHandler::handlePhotostreamRequest(RequestCo
 	unsigned int startIndex = request.getParamAsInt("startIndex", 0);
 	unsigned int slideShow = request.getParamAsInt("slideshow", 0);
 
-	unsigned int thumbnailSize = request.getParamOrCookieAsInt("thumbnailSize", "photostream_thumbnailSizeValue", 500);
+	// TODO: using a bool from the above would be a bit better, but...
+	bool isSlideShow = slideShow == 1;
 
 	PhotoQueryEngine::QueryParams queryParams;
 
 	int sortOrderType = request.getParamOrCookieAsInt("sortOrder", "photostream_sortOrderIndex", 1);
 	queryParams.setSortOrderType(sortOrderType == 0 ? PhotoQueryEngine::QueryParams::eSortOldestFirst : PhotoQueryEngine::QueryParams::eSortYoungestFirst);
 
-	bool wantSLR = request.getParamOrCookieAsInt("typeSLR", "photostream_typeSLR", 1) == 1;
-	bool wantDrone = request.getParamOrCookieAsInt("typeDrone", "photostream_typeDrone", 0) == 1;
-	
 	// TODO: do this properly...
 	queryParams.setPermissionType((PhotoQueryEngine::QueryParams::PermissionType)authenticationState.authenticationPermission.level);
 	
-	unsigned int sourceTypeFlags = PhotoQueryEngine::QueryParams::buildSourceTypesFlags(wantSLR, wantDrone);
-	queryParams.setSourceTypesFlag(sourceTypeFlags);
+	bool wantSLR = request.getParamOrCookieAsInt("typeSLR", "photostream_typeSLR", 1) == 1;
+	bool wantDrone = request.getParamOrCookieAsInt("typeDrone", "photostream_typeDrone", 0) == 1;
+	
+	queryParams.setSourceTypesFlag(PhotoQueryEngine::QueryParams::buildSourceTypesFlags(wantSLR, wantDrone));
 	PhotoResultsPtr photoResults = m_photoCatalogue.getQueryEngine().getPhotoResults(queryParams);
 
 	// check that we can actually get the requested index
@@ -475,15 +429,16 @@ WebRequestHandlerResult PhotosRequestHandler::handlePhotostreamRequest(RequestCo
 		handleRequestResult.wasHandled = true;
 		return handleRequestResult;
 	}
+	
+	// TODO: generateMainSitenavCode() shows up in profiles - can we cache it?
+	PhotosHTMLHelpers::GenMainSitenavCodeParams params(!isSlideShow, !isSlideShow, "photostream_");
+	std::string siteNavHeaderHTML = m_photosHTMLHelpers.generateMainSitenavCode(params);
 
 	std::string photosListHTML;
 	std::string paginationHTML;
 
 	if (slideShow == 1)
 	{
-		PhotosHTMLHelpers::GenMainSitenavCodeParams params(false, false, "photostream_");
-		std::string siteNavHeaderHTML = m_photosHTMLHelpers.generateMainSitenavCode(params);
-
 		// slideshow version of same thing
 		// TODO: is obeying the pagination stuff wanted/worth it?
 		//       can we jump to a particular photo index in some other way?
@@ -496,12 +451,9 @@ WebRequestHandlerResult PhotosRequestHandler::handlePhotostreamRequest(RequestCo
 			contentAndPaginationHTML += PhotosHTMLHelpers::getPaginationCode("photostream/", request, totalPhotos, startIndex, perPage, true, true);
 		}
 
-		std::string photosListJS;
-
-		photosListJS = PhotosHTMLHelpers::getPhotoSwipeJSItemList(photoResults->getAllResults(), startIndex, perPage);
-
-		std::string templateFile = "photostream_slideshow.tmpl";
-		WebResponseGeneratorTemplateFile responseGen(FileHelpers::combinePaths(m_mainWebContentPath, templateFile),
+		std::string photosListJS = PhotosHTMLHelpers::getPhotoSwipeJSItemList(photoResults->getAllResults(), startIndex, perPage);
+		
+		WebResponseGeneratorTemplateFile responseGen(FileHelpers::combinePaths(m_mainWebContentPath, "photostream_slideshow.tmpl"),
 													 m_htmlBaseHRef, siteNavHeaderHTML,
 													 contentAndPaginationHTML, photosListJS);
 
@@ -509,9 +461,7 @@ WebRequestHandlerResult PhotosRequestHandler::handlePhotostreamRequest(RequestCo
 	}
 	else
 	{
-		// TODO: generateMainSitenavCode() shows up in profiles - can we cache it?
-		PhotosHTMLHelpers::GenMainSitenavCodeParams params(true, true, "photostream_");
-		std::string siteNavHeaderHTML = m_photosHTMLHelpers.generateMainSitenavCode(params);
+		unsigned int thumbnailSize = request.getParamOrCookieAsInt("thumbnailSize", "photostream_thumbnailSizeValue", 500);
 		
 		// normal gallery
 		if (perPage > 0)
@@ -534,8 +484,7 @@ WebRequestHandlerResult PhotosRequestHandler::handlePhotostreamRequest(RequestCo
 																						  startIndex, perPage, thumbnailSize, lazyLoad,
 																						  slideshowURL);
 
-		std::string templateFile = "photostream_gallery.tmpl";
-		WebResponseGeneratorTemplateFile responseGen(FileHelpers::combinePaths(m_mainWebContentPath, templateFile),
+		WebResponseGeneratorTemplateFile responseGen(FileHelpers::combinePaths(m_mainWebContentPath, "photostream_gallery.tmpl"),
 													 m_htmlBaseHRef,
 													 siteNavHeaderHTML,
 													 photosListHTML,
@@ -590,7 +539,6 @@ WebRequestHandlerResult PhotosRequestHandler::handleDatesRequest(RequestConnecti
 		std::string contentHTML = "<a href=\"javascript:openPhotoSwipe();\">slide show overlay</a><br><br>\n";
 
 		std::string photosListJS;
-
 		if (dateParams.type == DateParams::eYearAndMonth)
 		{
 			const std::vector<const PhotoItem*>* photos = photoResults->getDateAccessor().getPhotosForYearMonth(dateParams.year, dateParams.month);
@@ -604,8 +552,7 @@ WebRequestHandlerResult PhotosRequestHandler::handleDatesRequest(RequestConnecti
 			photosListJS = PhotosHTMLHelpers::getPhotoSwipeJSItemList(*photos, startIndex, perPage);
 		}
 
-		std::string templateFile = "dates_slideshow.tmpl";
-		WebResponseGeneratorTemplateFile responseGen(FileHelpers::combinePaths(m_mainWebContentPath, templateFile),
+		WebResponseGeneratorTemplateFile responseGen(FileHelpers::combinePaths(m_mainWebContentPath, "dates_slideshow.tmpl"),
 													 m_htmlBaseHRef, siteNavHeaderHTML, contentHTML, photosListJS);
 
 		responseString = responseGen.getResponseString(responseParams);
@@ -635,8 +582,7 @@ WebRequestHandlerResult PhotosRequestHandler::handleDatesRequest(RequestConnecti
 
 		std::string contentHTML = PhotosHTMLHelpers::getDatesPhotosContentHTML(photoResults, dateParams, request, m_lazyPhotoLoadingEnabled, slideshowURL, specifyDateValsAsDirs);
 	
-		std::string templateFile = "dates_gallery.tmpl";
-		WebResponseGeneratorTemplateFile responseGen(FileHelpers::combinePaths(m_mainWebContentPath, templateFile),
+		WebResponseGeneratorTemplateFile responseGen(FileHelpers::combinePaths(m_mainWebContentPath, "dates_gallery.tmpl"),
 													 m_htmlBaseHRef,
 													 siteNavHeaderHTML,
 													 datesBarHTML,
@@ -687,7 +633,7 @@ WebRequestHandlerResult PhotosRequestHandler::handleLocationsRequest(RequestConn
 
 	std::string locationPath = request.getParam("locationPath");
 
-	std::string locationBarHTML = PhotosHTMLHelpers::getLocationsLocationBarHTML(photoResults, request);
+	std::string locationBarHTML = PhotosHTMLHelpers::getLocationsLocationBarHTML(request);
 
 	if (!locationPath.empty() && slideShow == 1)
 	{
@@ -702,26 +648,20 @@ WebRequestHandlerResult PhotosRequestHandler::handleLocationsRequest(RequestConn
 
 		std::string contentAndPaginationHTML = "<a href=\"javascript:openPhotoSwipe();\">slide show overlay</a><br><br>\n";
 
-		if (perPage > 0)
-		{
-			const PhotoResultsLocationAccessor& rsLocationAccessor = photoResults->getLocationAccessor();
-	
-			const std::vector<const PhotoItem*>* pPhotos = rsLocationAccessor.getPhotosForLocation(locationPath);
-			
-			unsigned int totalPhotos = pPhotos->size();
-			contentAndPaginationHTML += PhotosHTMLHelpers::getPaginationCode("locations/", request, totalPhotos, startIndex, perPage, true, true);
-		}
-
 		std::string currentLocationPath = request.getParam("locationPath");
 
 		const PhotoResultsLocationAccessor& rsLocationAccessor = photoResults->getLocationAccessor();
 
 		const std::vector<const PhotoItem*>* pPhotos = rsLocationAccessor.getPhotosForLocation(currentLocationPath);
+
+		if (perPage > 0)
+		{
+			contentAndPaginationHTML += PhotosHTMLHelpers::getPaginationCode("locations/", request, pPhotos->size(), startIndex, perPage, true, true);
+		}
 		
 		std::string photosListJS = PhotosHTMLHelpers::getPhotoSwipeJSItemList(*pPhotos, startIndex, perPage);
 
-		std::string templateFile = "locations_slideshow.tmpl";
-		WebResponseGeneratorTemplateFile responseGen(FileHelpers::combinePaths(m_mainWebContentPath, templateFile),
+		WebResponseGeneratorTemplateFile responseGen(FileHelpers::combinePaths(m_mainWebContentPath, "locations_slideshow.tmpl"),
 													 m_htmlBaseHRef, siteNavHeaderHTML, contentAndPaginationHTML, photosListJS);
 
 		responseString = responseGen.getResponseString(responseParams);
@@ -766,8 +706,7 @@ WebRequestHandlerResult PhotosRequestHandler::handleLocationsRequest(RequestConn
 																							  slideshowURL);
 		}
 
-		std::string templateFile = "locations_gallery.tmpl";
-		WebResponseGeneratorTemplateFile responseGen(FileHelpers::combinePaths(m_mainWebContentPath, templateFile),
+		WebResponseGeneratorTemplateFile responseGen(FileHelpers::combinePaths(m_mainWebContentPath, "locations_gallery.tmpl"),
 													 m_htmlBaseHRef,
 													 siteNavHeaderHTML,
 													 photosListHTML,
@@ -785,8 +724,7 @@ WebRequestHandlerResult PhotosRequestHandler::handleLocationsRequest(RequestConn
 
 		std::string contentHTML = PhotosHTMLHelpers::getLocationsOverviewPageHTML(photoResults, request);
 
-		std::string templateFile = "locations_overview.tmpl";
-		WebResponseGeneratorTemplateFile responseGen(FileHelpers::combinePaths(m_mainWebContentPath, templateFile),
+		WebResponseGeneratorTemplateFile responseGen(FileHelpers::combinePaths(m_mainWebContentPath, "locations_overview.tmpl"),
 													 m_htmlBaseHRef,
 													 siteNavHeaderHTML,
 													 locationBarHTML,
@@ -815,8 +753,7 @@ WebRequestHandlerResult PhotosRequestHandler::handleStatusRequest(RequestConnect
 	
 	std::string statusHTML = m_statusService.getCurrentStatusHTML();
 	
-	std::string templateFile = "status.tmpl";
-	WebResponseGeneratorTemplateFile responseGen(FileHelpers::combinePaths(m_mainWebContentPath, templateFile),
+	WebResponseGeneratorTemplateFile responseGen(FileHelpers::combinePaths(m_mainWebContentPath, "status.tmpl"),
 												 m_htmlBaseHRef,
 												 siteNavHeaderHTML,
 												 statusHTML);

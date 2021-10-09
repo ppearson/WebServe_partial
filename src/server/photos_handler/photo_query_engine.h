@@ -147,7 +147,7 @@ protected:
 
 	PhotoResultsPtr performQuery(const QueryParams& queryParams);
 	
-	bool matchesPermissions(QueryParams::PermissionType permissionType, const PhotoItem& item);
+	static bool matchesPermissions(QueryParams::PermissionType permissionType, const PhotoItem& item);
 
 protected:
 	const std::vector<PhotoItem>& m_aAllPhotos;
@@ -158,9 +158,8 @@ protected:
 	};
 
 
-
 	std::mutex						m_cacheLock;
-	// TODO: uses hashes of this instead of the item directly...
+	// TODO: use hashes of this instead of the item directly...
 	QueryParams						m_cachedQueries[kItemCacheSize];
 	PhotoResultsPtr					m_cachedItemsPtr[kItemCacheSize];
 	unsigned int					m_numCachedResults;

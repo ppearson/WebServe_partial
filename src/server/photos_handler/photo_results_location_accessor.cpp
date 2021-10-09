@@ -148,9 +148,6 @@ void PhotoResultsLocationAccessor::build(const std::vector<const PhotoItem*>& ra
 
 					pNewTempPointers->items[level] = pNewSubItem;
 
-					previousLevelItem->subLocations.push_back(newItemIndex);
-					previousLevelItem->subLocationNames.push_back(compStr);
-
 					previousLevelItem->subLocationLookup.insert(std::pair<HashValue, unsigned int>(componentHash, newItemIndex));
 					previousLevelItem->subLocationLookupAlphabetical.insert(std::pair<std::string, unsigned int>(compStr, newItemIndex));
 				}
@@ -237,8 +234,6 @@ std::vector<std::string> PhotoResultsLocationAccessor::getSubLocationsForLocatio
 
 	if (pItem)
 	{
-//		return pItem->subLocationNames;
-		
 		// we want them to be alphabetical, so we iterate the map
 		for (const auto& subItem : pItem->subLocationLookupAlphabetical)
 		{

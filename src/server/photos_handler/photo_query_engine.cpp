@@ -82,14 +82,13 @@ PhotoResultsPtr PhotoQueryEngine::getPhotoResults(const QueryParams& queryParams
 
 PhotoResultsPtr PhotoQueryEngine::findCachedResult(const QueryParams& queryParams) const
 {
-	PhotoResultsPtr result;
-
 	for (unsigned int i = 0; i < m_numCachedResults; i++)
 	{
 		if (m_cachedQueries[i] == queryParams)
 			return m_cachedItemsPtr[i];
 	}
 
+	PhotoResultsPtr result;
 	return result;
 }
 

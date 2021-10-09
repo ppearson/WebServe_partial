@@ -148,7 +148,6 @@ bool WebRequest::parse(Logger& logger)
 	std::vector<std::string>::const_iterator itLine = lines.begin();
 	++ itLine; // skip the first line which we've processed already
 
-
 	bool lookForAuthentication = false;
 	bool foundCookie = false;
 	bool foundUserAgent = false;
@@ -166,15 +165,12 @@ bool WebRequest::parse(Logger& logger)
 		if (lookForAuthentication && (otherLine.compare(0, 14, "Authorization:") == 0))
 		{
 			std::string authorizationString = otherLine.substr(15);
-
 			processAuthenticationHeader(authorizationString);
 			lookForAuthentication = false;
 		}
 		else if (!foundCookie && (otherLine.compare(0, 7, "Cookie:") == 0))
 		{
-			std::string cookieString;
-			cookieString = extractFieldItem(otherLine, 7 + 1);
-
+			std::string cookieString = extractFieldItem(otherLine, 7 + 1);
 			processCookieHeader(cookieString);
 			foundCookie = true;
 		}
@@ -390,28 +386,7 @@ void WebRequest::addParams(const std::string& params)
 		std::string name = item.substr(0, sep);
 		std::string value = item.substr(sep + 1);
 
-		// convert hex encoded strings to native strings
-
-		size_t nHex = 0;
-		while ((nHex = value.find('%', nHex)) != std::string::npos)
-		{
-			std::string strHex = "0x" + value.substr(nHex + 1, 2);
-			char cChar = static_cast<char>(strtol(strHex.c_str(), nullptr, 16));
-			char szTemp[2];
-			memset(szTemp, 0, 2);
-			sprintf(szTemp, "%c", cChar);
-			std::string strChar(szTemp);
-
-			value.replace(nHex, 3, strChar);
-		}
-
-		// + to spaces
-
-		size_t nSpace = 0;
-		while ((nSpace = value.find('+', nSpace)) != std::string::npos)
-		{
-			value.replace(nSpace, 1, " ");
-		}
+		value = StringHelpers::simpleDecodeString(value);
 
 		if (!name.empty() && !value.empty())
 		{
