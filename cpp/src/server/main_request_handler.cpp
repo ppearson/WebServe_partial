@@ -1,6 +1,6 @@
 /*
  WebServe
- Copyright 2018-2019 Peter Pearson.
+ Copyright 2018-2022 Peter Pearson.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  You may not use this file except in compliance with the License.
@@ -71,8 +71,8 @@ void MainRequestHandler::configure(const Configuration& configuration, Logger& l
 	
 	if (configuration.isRedirectToHTTPSEnabled())
 	{
-		if (configuration.getHTTPPortNumber() != 80 ||
-			configuration.getHTTPSPortNumber() != 443)
+		if (configuration.getHTTPv4PortNumber() != 80 ||
+			configuration.getHTTPSv4PortNumber() != 443)
 		{
 			m_hostnamePortRewriteRequiredForHTTPSRedirect = true;
 		}
@@ -209,10 +209,10 @@ void MainRequestHandler::handleRequest(RequestConnection& requestConnection)
 					newHost = requestedHost;
 				}
 				
-				if (configuration.getHTTPSPortNumber() != 443)
+				if (configuration.getHTTPSv4PortNumber() != 443)
 				{
 					// we need to add the non-standard port
-					newHost += ":" + std::to_string(configuration.getHTTPSPortNumber());
+					newHost += ":" + std::to_string(configuration.getHTTPSv4PortNumber());
 				}
 				
 				targetURL = "https://" + newHost + newRequest.getPath();

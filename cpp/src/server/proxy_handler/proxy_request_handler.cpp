@@ -1,6 +1,6 @@
 /*
  WebServe
- Copyright 2019 Peter Pearson.
+ Copyright 2018-2022 Peter Pearson.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  You may not use this file except in compliance with the License.
@@ -115,7 +115,7 @@ WebRequestHandlerResult ProxyRequestHandler::handleRequest(RequestConnection& re
 	
 	WebRequestHandlerResult handleRequestResult;
 	
-	Socket proxySocket(&logger, m_targetHostname, m_targetPort);
+	Socket proxySocket(&logger, m_targetHostname, m_targetPort, false);
 	if (!proxySocket.connect())
 	{
 		logger.error("Error connecting to proxy target.");

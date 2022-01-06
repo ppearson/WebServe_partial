@@ -1,6 +1,6 @@
 /*
  WebServe
- Copyright 2018 Peter Pearson.
+ Copyright 2018-2022 Peter Pearson.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  You may not use this file except in compliance with the License.
@@ -17,6 +17,8 @@
 */
 
 #include "uri_helpers.h"
+
+#include <cstring>
 
 #include <algorithm>
 
@@ -49,4 +51,21 @@ std::string URIHelpers::getFileExtension(const std::string& uri)
 	std::transform(extension.begin(), extension.end(), extension.begin(), tolower);
 
 	return extension;
+}
+
+std::string URIHelpers::combineURIs(const std::string& uri0, const std::string& uri1)
+{
+	if (uri0.empty())
+		return uri1;
+
+	std::string final = uri0;
+
+	if (strcmp(final.substr(final.size() - 1, 1).c_str(), "/") != 0)
+	{
+		final += "/";
+	}
+
+	final += uri1;
+
+	return final;
 }

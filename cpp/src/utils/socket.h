@@ -1,6 +1,6 @@
 /*
  WebServe
- Copyright 2018-2020 Peter Pearson.
+ Copyright 2018-2022 Peter Pearson.
  taken originally from:
  Sitemon
  Copyright 2010 Peter Pearson.
@@ -25,18 +25,11 @@
 #include <cstdio>
 #include <cstring>
 
-#ifdef __SUNPRO_CC
-	#include <sys/types.h>
-	#include <sys/socket.h>
-	#include <netinet/in.h>
-	#include <netdb.h>
-#else
-	#include <sys/socket.h>
-	#include <sys/types.h>
-	#include <arpa/inet.h>
-	#include <netdb.h>
-	#include <string.h>
-#endif
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <string.h>
 
 #define SOCK_LEAK_DETECTOR 0
 
@@ -56,12 +49,10 @@ struct SocketRecvReturnCode
 {
 	SocketRecvReturnCode()
 	{
-		
 	}
 
 	SocketRecvReturnCode(SocketRecvReturnCodeType ty) : type(ty)
-	{
-		
+	{	
 	}
 
 	SocketRecvReturnCodeType type = eSockRecv_Error;
@@ -71,8 +62,7 @@ class Socket
 {
 public:
 	Socket();
-	Socket(Logger* pLogger, int port);
-	Socket(Logger* pLogger, const std::string& host, int port);
+	Socket(Logger* pLogger, const std::string& host, int port, bool v6);
 
 	friend class ClientConnectionIPInfo;
 	
@@ -88,9 +78,9 @@ public:
 		SOCKOPT_FASTOPEN			= 1 << 0
 	};
 	
-	bool create(Logger* pLogger, unsigned int flags = 0);
+	bool create(Logger* pLogger, unsigned int flags, bool v6);
 
-	bool bind(const int port);
+	bool bind(const int port, bool v6);
 	bool listen(const int connections) const;
 	bool accept(Socket* sock) const;
 	
@@ -125,15 +115,16 @@ protected:
 	SocketRecvReturnCode recvWithTimeoutSockOpt(std::string& data, unsigned int& dataLength, unsigned int timeoutSecs) const;
 
 protected:
-	// TODO: this needs to be sockaddr_storage when we add IPv6 support...
-	sockaddr_in		m_addr;
-	int				m_sock;
+	unsigned int		m_version;
+
+	sockaddr_storage	m_addr;
+	int					m_sock;
 	
-	int				m_port;
-	std::string		m_host;
+	int					m_port;
+	std::string			m_host;
 
 	// really dislike this, but again, there aren't really "better" options...
-	Logger*			m_pLogger;
+	Logger*				m_pLogger;
 	
 #if SOCK_LEAK_DETECTOR
 	char*			m_pLeak;

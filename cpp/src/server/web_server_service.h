@@ -1,6 +1,6 @@
 /*
  WebServe
- Copyright 2018-2019 Peter Pearson.
+ Copyright 2018-2022 Peter Pearson.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  You may not use this file except in compliance with the License.
@@ -68,25 +68,37 @@ public:
 protected:
 
 	void workerThreadFunction(WebServerThreadConfig* pThreadConfig);
-	
-	void acceptHTTPConnectionThreadFunction();
-#if WEBSERVE_ENABLE_HTTPS_SUPPORT
-	void acceptHTTPSConnectionThreadFunction();
-#endif
+
+
+	void acceptConnectionThreadFunction(Socket* bindSocket, bool secureType);
 
 	void handleConnection(RequestConnection& connection);
 
 protected:
 	std::vector<std::thread>		m_aWorkerThreads;
 	
-	std::thread						m_acceptHTTPConnectionThread;
+	std::thread						m_acceptHTTPV4ConnectionThread;
 #if WEBSERVE_ENABLE_HTTPS_SUPPORT
-	std::thread						m_acceptHTTPSConnectionThread;
+	std::thread						m_acceptHTTPSV4ConnectionThread;
 #endif
 	
-	Socket							m_mainSocketHTTP;
+	Socket							m_mainSocketV4HTTP;
 #if WEBSERVE_ENABLE_HTTPS_SUPPORT
-	Socket							m_mainSocketHTTPS;
+	Socket							m_mainSocketV4HTTPS;
+#endif
+
+	// for the moment, have completely duplicated architecture for the IPv6 for experimentation purposes, but it should be possible
+	// to merge a lot of the two in the future...
+#if WEBSERVE_ENABLE_IPV6_SUPPORT
+	std::thread						m_acceptHTTPV6ConnectionThread;
+#if WEBSERVE_ENABLE_HTTPS_SUPPORT
+	std::thread						m_acceptHTTPSV6ConnectionThread;
+#endif
+
+	Socket							m_mainSocketV6HTTP;
+#if WEBSERVE_ENABLE_HTTPS_SUPPORT
+	Socket							m_mainSocketV6HTTPS;
+#endif
 #endif
 	
 	// socket layers

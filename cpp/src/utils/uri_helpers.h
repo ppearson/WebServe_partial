@@ -1,6 +1,6 @@
 /*
  WebServe
- Copyright 2018 Peter Pearson.
+ Copyright 2018-2022 Peter Pearson.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  You may not use this file except in compliance with the License.
@@ -28,6 +28,8 @@ public:
 
 	// The assumption here is that all URIs are relative (i.e. there's no leading slash)
 	static bool splitFirstLevelDirectoryAndRemainder(const std::string& uri, std::string& directory, std::string& remainder);
+
+	static std::string combineURIs(const std::string& uri0, const std::string& uri1);
 
 	static std::string getFileExtension(const std::string& uri);
 };

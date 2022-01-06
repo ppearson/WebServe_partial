@@ -1,6 +1,6 @@
 /*
  WebServe
- Copyright 2019-2020 Peter Pearson.
+ Copyright 2019-2022 Peter Pearson.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  You may not use this file except in compliance with the License.
@@ -492,7 +492,7 @@ SocketLayerS2N::~SocketLayerS2N()
 bool SocketLayerS2N::configure(const Configuration& configuration)
 {
 #if WEBSERVE_ENABLE_HTTPS_SUPPORT
-	if (configuration.isHTTPSEnabled())
+	if (configuration.isHTTPSv4Enabled())
 	{
 		// because we don't control the sockets directly, we can't pass MSG_NOSIGNAL to stop
 		// SIGPIPE happening, so we have to disable it at this level.

@@ -1,6 +1,6 @@
 /*
  WebServe
- Copyright 2018-2019 Peter Pearson.
+ Copyright 2018-2022 Peter Pearson.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  You may not use this file except in compliance with the License.
@@ -32,8 +32,7 @@ public:
 	{
 	public:
 		SiteConfig()
-		{
-			
+		{	
 		}
 		
 		bool hasParam(const std::string& paramName) const
@@ -105,24 +104,44 @@ public:
 		return m_workerThreads;
 	}
 	
-	bool isHTTPEnabled() const
+	bool isHTTPv4Enabled() const
 	{
-		return m_enableHTTP;
+		return m_enableHTTPv4;
 	}
 
-	unsigned int getHTTPPortNumber() const
+	unsigned int getHTTPv4PortNumber() const
 	{
-		return m_portNumberHTTP;
+		return m_portNumberHTTPv4;
 	}
 	
-	bool isHTTPSEnabled() const
+	bool isHTTPSv4Enabled() const
 	{
-		return m_enableHTTPS;
+		return m_enableHTTPSv4;
 	}
 	
-	unsigned int getHTTPSPortNumber() const
+	unsigned int getHTTPSv4PortNumber() const
 	{
-		return m_portNumberHTTPS;
+		return m_portNumberHTTPSv4;
+	}
+
+	bool isHTTPv6Enabled() const
+	{
+		return m_enableHTTPv6;
+	}
+
+	unsigned int getHTTPv6PortNumber() const
+	{
+		return m_portNumberHTTPv6;
+	}
+	
+	bool isHTTPSv6Enabled() const
+	{
+		return m_enableHTTPSv6;
+	}
+	
+	unsigned int getHTTPSv6PortNumber() const
+	{
+		return m_portNumberHTTPSv6;
 	}
 	
 	const std::vector<std::string>& getHTTPSCertificatePaths() const
@@ -249,12 +268,19 @@ protected:
 	// webserve stuff
 	unsigned int			m_workerThreads;
 	
-	bool					m_enableHTTP;
-	unsigned int			m_portNumberHTTP;
-	bool					m_enableHTTPS;
-	unsigned int			m_portNumberHTTPS;
+	// TODO: something less duplicate than this, and arguably more flexible as well,
+	//       but this is at least something to work off functionally...
+	bool					m_enableHTTPv4;
+	unsigned int			m_portNumberHTTPv4;
+	bool					m_enableHTTPSv4;
+	unsigned int			m_portNumberHTTPSv4;
+
+	bool					m_enableHTTPv6;
+	unsigned int			m_portNumberHTTPv6;
+	bool					m_enableHTTPSv6;
+	unsigned int			m_portNumberHTTPSv6;
 	
-	// for HTTPS. A vector so that we can cope with multiple for different domains.
+	// for HTTPS. A vector so that we can cope with multiple for different domains / virtual hosts.
 	std::vector<std::string>	m_httpsCertificatePaths;
 	std::vector<std::string>	m_httpsKeyPaths;
 	

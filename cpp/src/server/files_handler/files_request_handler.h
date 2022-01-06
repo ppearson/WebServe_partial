@@ -1,6 +1,6 @@
 /*
  WebServe
- Copyright 2019 Peter Pearson.
+ Copyright 2018-2022 Peter Pearson.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  You may not use this file except in compliance with the License.
@@ -43,6 +43,7 @@ protected:
 	AuthenticationController	m_authenticationController;
 	
 	bool						m_allowDirectoryListing;
+	std::string					m_defaultFile;
 	
 	std::string					m_basePath;
 };

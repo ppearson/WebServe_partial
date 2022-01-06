@@ -1,6 +1,6 @@
 /*
  WebServe
- Copyright 2018-2019 Peter Pearson.
+ Copyright 2018-2022 Peter Pearson.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  You may not use this file except in compliance with the License.
@@ -24,11 +24,15 @@
 
 Configuration::Configuration() :
 	m_workerThreads(16),
-	m_enableHTTP(true),
-	m_portNumberHTTP(9393),
-	m_enableHTTPS(false),
-	m_portNumberHTTPS(9394),
+	m_enableHTTPv4(true),
+	m_portNumberHTTPv4(9393),
+	m_enableHTTPSv4(false),
+	m_portNumberHTTPSv4(9394),
 	m_redirectToHTTPS(false),
+	m_enableHTTPv6(false),
+	m_portNumberHTTPv6(9393),
+	m_enableHTTPSv6(false),
+	m_portNumberHTTPSv6(9394),
 	m_enableHSTS(false),
 	m_logOutputEnabled(true),
 	m_logOutputTarget("stderr"),
@@ -67,14 +71,14 @@ bool Configuration::loadFromFile(const std::string& configPath)
 	}
 
 	std::string line;
-	char buf[1024];
+	char buf[2048];
 
 	std::string key;
 	std::string value;
 	
 	SiteConfig* pCurrentSiteConfig = nullptr;
 
-	while (fileStream.getline(buf, 1024))
+	while (fileStream.getline(buf, 2048))
 	{
 		line.assign(buf);
 
@@ -146,6 +150,8 @@ bool Configuration::loadFromFile(const std::string& configPath)
 				StringHelpers::stripWhitespace(stringValue);
 				
 				pCurrentSiteConfig->m_aParams[paramName] = stringValue;
+				
+				continue;
 			}
 		}		
 
@@ -161,23 +167,41 @@ bool Configuration::loadFromFile(const std::string& configPath)
 			unsigned int intValue = atoi(value.c_str());
 			m_workerThreads = intValue;
 		}
-		else if (tryExtractBoolValue("enableHTTP", key, value, m_enableHTTP))
+		else if (tryExtractBoolValue("enableHTTP", key, value, m_enableHTTPv4) || tryExtractBoolValue("enableHTTPv4", key, value, m_enableHTTPv4))
 		{
 			
 		}
-		else if (key == "portNumberHTTP")
+		else if (key == "portNumberHTTP" || key == "portNumberHTTPv4")
 		{
 			unsigned int intValue = atoi(value.c_str());
-			m_portNumberHTTP = intValue;
+			m_portNumberHTTPv4 = intValue;
 		}
-		else if (tryExtractBoolValue("enableHTTPS", key, value, m_enableHTTPS))
+		else if (tryExtractBoolValue("enableHTTPS", key, value, m_enableHTTPSv4) || tryExtractBoolValue("enableHTTPSv4", key, value, m_enableHTTPSv4))
 		{
 			
 		}
-		else if (key == "portNumberHTTPS")
+		else if (key == "portNumberHTTPS" || key == "portNumberHTTPSv4")
 		{
 			unsigned int intValue = atoi(value.c_str());
-			m_portNumberHTTPS = intValue;
+			m_portNumberHTTPSv4 = intValue;
+		}
+		else if (tryExtractBoolValue("enableHTTPv6", key, value, m_enableHTTPv6))
+		{
+
+		}
+		else if (key == "portNumberHTTPv6")
+		{
+			unsigned int intValue = atoi(value.c_str());
+			m_portNumberHTTPv6 = intValue;
+		}
+		else if (tryExtractBoolValue("enableHTTPSv6", key, value, m_enableHTTPSv6))
+		{
+
+		}
+		else if (key == "portNumberHTTPSv6")
+		{
+			unsigned int intValue = atoi(value.c_str());
+			m_portNumberHTTPSv6 = intValue;
 		}
 		else if (key == "httpsCertificatePath")
 		{
@@ -300,6 +324,11 @@ bool Configuration::loadFromFile(const std::string& configPath)
 		else if (tryExtractBoolValue("tcpFastOpen", key, value, m_tcpFastOpen))
 		{
 
+		}
+		else
+		{
+			// TODO: proper logging, but we currently don't have a logger at this point, so...
+			fprintf(stderr, "Warning: Unrecognised configuration item: '%s' in WebServe config file...\n", key.c_str());
 		}
 	}
 

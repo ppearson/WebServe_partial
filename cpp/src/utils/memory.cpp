@@ -1,6 +1,6 @@
 /*
  WebServe
- Copyright 2019 Peter Pearson.
+ Copyright 2018-2022 Peter Pearson.
  Originally taken from:
  Imagine
  Copyright 2011-2012 Peter Pearson.

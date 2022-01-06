@@ -1,6 +1,6 @@
 /*
  WebServe
- Copyright 2019 Peter Pearson.
+ Copyright 2018-2022 Peter Pearson.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  You may not use this file except in compliance with the License.
@@ -54,6 +54,8 @@ void FilesRequestHandler::configure(const Configuration::SiteConfig& siteConfig,
 	m_basePath = siteConfig.getParam("basePath");
 	
 	m_allowDirectoryListing = siteConfig.getParamAsBool("allowDirectoryListing", false);
+
+	m_defaultFile = siteConfig.getParam("defaultFile");
 }
 
 WebRequestHandlerResult FilesRequestHandler::handleRequest(RequestConnection& requestConnection, const WebRequest& request, const std::string& refinedURI)
@@ -70,7 +72,7 @@ WebRequestHandlerResult FilesRequestHandler::handleRequest(RequestConnection& re
 	
 	// we received a relative path to this handler
 
-	const std::string& requestPath = refinedURI;
+	std::string requestPath = refinedURI;
 
 	WebRequestHandlerResult handleRequestResult;
 
@@ -78,58 +80,55 @@ WebRequestHandlerResult FilesRequestHandler::handleRequest(RequestConnection& re
 	
 	std::string responseString;
 
-	// see if it's a file request - if so, short-circuit it to handle it immediately
 	// TODO: make this more robust
-	if (requestPath.find('.') != std::string::npos)
+	if (requestPath.find('.') == std::string::npos && !m_defaultFile.empty())
 	{
-		// for the moment, always just use WebResponseAdvancedBinaryFile
-		// to send the file, as we're not modifying the contents...
-		
-		std::string fullPath = FileHelpers::combinePaths(m_basePath, requestPath);
+		requestPath = URIHelpers::combineURIs(requestPath, m_defaultFile);
+	}
 
-		WebResponseAdvancedBinaryFile fileResponse(fullPath);
-		
-		WebResponseAdvancedBinaryFile::ValidationResult validationResult = fileResponse.validateResponse();
-		
-		if (validationResult == WebResponseAdvancedBinaryFile::eFileNotFound)
-		{
-			WebResponseGeneratorBasicText responseGen(404, "File not found.");
-			
-			responseString = responseGen.getResponseString(responseParams);
-		}
-		else if (validationResult == WebResponseAdvancedBinaryFile::eFileTypeNotSupported)
-		{
-			WebResponseGeneratorBasicText responseGen(503, "File type not supported.");
-			
-			responseString = responseGen.getResponseString(responseParams);
-		}
-		else
-		{
-			// process the request
-			
-			responseParams.setCacheControlParams(WebResponseParams::CC_PUBLIC | WebResponseParams::CC_MAX_AGE, 60 * 24 * 25);
-	
-			// TODO: the return of false from this can be due to many different things,
-			//       so it's not clear how to handle the different issues...
-			if (!fileResponse.sendResponse(requestConnection.pConnectionSocket, responseParams))
-			{
-				// Safari (on iOS in particular) seems to bizarrely shut down sockets mid-transfer,
-				// almost as if it knows it has the image already, but only when keep-alive is enabled which is a bit strange...
-				logger.debug("Can't send binary file: %s. Connection was closed mid transfer by the remote side.", fullPath.c_str());
-	
-				handleRequestResult.inError = true;
-				handleRequestResult.wasHandled = true;
-				return handleRequestResult;
-			}
-	
-			handleRequestResult.wasHandled = true;
-			return handleRequestResult;
-		}
+
+	// for the moment, always just use WebResponseAdvancedBinaryFile
+	// to send the file, as we're not modifying the contents...
+
+	std::string fullPath = FileHelpers::combinePaths(m_basePath, requestPath);
+
+	WebResponseAdvancedBinaryFile fileResponse(fullPath);
+
+	WebResponseAdvancedBinaryFile::ValidationResult validationResult = fileResponse.validateResponse();
+
+	if (validationResult == WebResponseAdvancedBinaryFile::eFileNotFound)
+	{
+		WebResponseGeneratorBasicText responseGen(404, "File not found.");
+
+		responseString = responseGen.getResponseString(responseParams);
+	}
+	else if (validationResult == WebResponseAdvancedBinaryFile::eFileTypeNotSupported)
+	{
+		WebResponseGeneratorBasicText responseGen(503, "File type not supported.");
+
+		responseString = responseGen.getResponseString(responseParams);
 	}
 	else
 	{
-		// if it was empty...
-		// TODO: optionally look for index.html or something?
+		// process the request
+
+		responseParams.setCacheControlParams(WebResponseParams::CC_PUBLIC | WebResponseParams::CC_MAX_AGE, 60 * 24 * 25);
+
+		// TODO: the return of false from this can be due to many different things,
+		//       so it's not clear how to handle the different issues...
+		if (!fileResponse.sendResponse(requestConnection.pConnectionSocket, responseParams))
+		{
+			// Safari (on iOS in particular) seems to bizarrely shut down sockets mid-transfer,
+			// almost as if it knows it has the image already, but only when keep-alive is enabled which is a bit strange...
+			logger.debug("Can't send binary file: %s. Connection was closed mid transfer by the remote side.", fullPath.c_str());
+
+			handleRequestResult.inError = true;
+			handleRequestResult.wasHandled = true;
+			return handleRequestResult;
+		}
+
+		handleRequestResult.wasHandled = true;
+		return handleRequestResult;
 	}
 
 	// send the response

@@ -19,31 +19,23 @@
  ---------
 */
 
-#ifndef IMAGE_READER_JPEG_H
-#define IMAGE_READER_JPEG_H
+#ifndef IMAGE_READER_PNG_H
+#define IMAGE_READER_PNG_H
 
 #include "io/image_reader.h"
 
-// forward declare it so we don't need to include libjpeg stuff in the header...
-struct jpeg_decompress_struct;
+struct PNGInfra;
 
-class ImageReaderJPEG : public ImageReader
+class ImageReaderPNG : public ImageReader
 {
 public:
-	ImageReaderJPEG();
-	
-	class JPEGRawEXIFMetaDataPayload : public ImageReader::RawEXIFMetaData::RawEXIFMetaDataTempPayload
+	ImageReaderPNG();
+
+	enum ImageType
 	{
-	public:
-		JPEGRawEXIFMetaDataPayload() : RawEXIFMetaData::RawEXIFMetaDataTempPayload(), 
-		  pDecompressStruct(nullptr)
-		{
-			
-		}
-		
-		virtual ~JPEGRawEXIFMetaDataPayload();
-		
-		jpeg_decompress_struct*		pDecompressStruct;
+		eInvalid,
+		eRGBA,
+		eA
 	};
 
 	virtual bool getImageDetails(const std::string& filePath, bool extractEXIF, ImageDetails& imageDetails) const override;
@@ -51,6 +43,10 @@ public:
 	virtual bool extractEXIFMetaData(const std::string& filePath, RawEXIFMetaData& exifData) const override;
 
 	virtual Image3f* readColour3fImage(const std::string& filePath) const override;
+
+protected:
+	ImageType readData(const std::string& filePath, PNGInfra& infra, bool wantAlpha) const;
+
 };
 
-#endif // IMAGE_READER_JPEG_H
+#endif // IMAGE_READER_PNG_H

@@ -1,6 +1,6 @@
 /*
  WebServe
- Copyright 2019 Peter Pearson.
+ Copyright 2018-2022 Peter Pearson.
  Orginally taken from:
  Imagine
  Copyright 2011-2015 Peter Pearson.
@@ -40,8 +40,8 @@ public:
 	void addUChar(unsigned char value);
 	void addString(const std::string& value);
 
-protected:
 	void addData(const unsigned char* buffer, unsigned int length);
+protected:
 
 public:
 	HashValue m_hash;

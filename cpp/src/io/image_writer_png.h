@@ -1,6 +1,9 @@
 /*
  WebServe
  Copyright 2018-2022 Peter Pearson.
+ Originally taken from:
+ Imagine
+ Copyright 2011-2012 Peter Pearson.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  You may not use this file except in compliance with the License.
@@ -16,31 +19,19 @@
  ---------
 */
 
-#include "photo_item.h"
+#ifndef IMAGE_WRITER_PNG_H
+#define IMAGE_WRITER_PNG_H
 
-PhotoItem::PhotoItem() :
-	m_sourceType(eSourceUnknown),
-	m_itemType(eTypeUnknown),
-	m_permissionType(ePermissionPublic),
-	m_rating(0)
+#include "io/image_writer.h"
+
+class ImageWriterPNG : public ImageWriter
 {
+public:
+	ImageWriterPNG();
 
-}
+	virtual bool writeImage(const std::string& filePath, const Image3f& image, const WriteParams& writeParams) override;
+	
+	virtual bool writeRawImageCopy(const std::string& originalFilePath, const std::string& newFilePath, const WriteRawParams& params) const override;
+};
 
-void PhotoItem::setInfoFromEXIF(const EXIFInfoBasic& exifInfoBasic)
-{
-	if (!exifInfoBasic.m_takenDateTime.empty())
-	{
-		m_timeTaken.setFromString(exifInfoBasic.m_takenDateTime, DateTime::eDTIF_EXIFDATETIME);
-	}
-}
-
-void PhotoItem::setBasicDate(const std::string& date)
-{
-	m_timeTaken.setFromString(date, DateTime::eDTIF_DATE);
-}
-
-bool PhotoItem::operator<(const PhotoItem& rhs) const
-{
-	return m_timeTaken < rhs.m_timeTaken;
-}
+#endif // IMAGE_WRITER_PNG_H

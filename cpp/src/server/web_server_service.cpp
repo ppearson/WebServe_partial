@@ -1,6 +1,6 @@
 /*
  WebServe
- Copyright 2018-2019 Peter Pearson.
+ Copyright 2018-2022 Peter Pearson.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  You may not use this file except in compliance with the License.
@@ -104,7 +104,7 @@ bool WebServerService::configure(const Configuration& configuration)
 	}
 	
 #if WEBSERVE_ENABLE_HTTPS_SUPPORT
-	if (m_configuration.isHTTPSEnabled())
+	if (m_configuration.isHTTPSv4Enabled())
 	{
 		m_pSecureSocketLayer = new SocketLayerS2N(m_logger);
 		if (!m_pSecureSocketLayer->configure(configuration))
@@ -125,32 +125,57 @@ bool WebServerService::bindSocketsAndPrepare()
 		socketCreationFlags |= Socket::SOCKOPT_FASTOPEN;
 	}
 	
-	if (m_configuration.isHTTPEnabled())
+	if (m_configuration.isHTTPv4Enabled())
 	{
-		unsigned int portNumberHTTP = m_configuration.getHTTPPortNumber();
-		
-		m_mainSocketHTTP.create(&m_logger, socketCreationFlags);
+		unsigned int portNumber = m_configuration.getHTTPv4PortNumber();
+		m_mainSocketV4HTTP.create(&m_logger, socketCreationFlags, false);
 	
-		if (!m_mainSocketHTTP.bind(portNumberHTTP))
+		if (!m_mainSocketV4HTTP.bind(portNumber, false))
 		{
-			m_logger.critical("Can't bind to port: %u for HTTP listener", portNumberHTTP);
+			m_logger.critical("Can't bind to port: %u for HTTP listener", portNumber);
 			return false;
 		}
 	}
 	
 #if WEBSERVE_ENABLE_HTTPS_SUPPORT
-	if (m_configuration.isHTTPSEnabled())
+	if (m_configuration.isHTTPSv4Enabled())
 	{
-		unsigned int portNumberHTTPS = m_configuration.getHTTPSPortNumber();
-		
-		m_mainSocketHTTPS.create(&m_logger, socketCreationFlags);
+		unsigned int portNumber = m_configuration.getHTTPSv4PortNumber();
+		m_mainSocketV4HTTPS.create(&m_logger, socketCreationFlags, false);
 	
-		if (!m_mainSocketHTTPS.bind(portNumberHTTPS))
+		if (!m_mainSocketV4HTTPS.bind(portNumber, false))
 		{
-			m_logger.critical("Can't bind to port: %u for HTTPS listener", portNumberHTTPS);
+			m_logger.critical("Can't bind to port: %u for HTTPS listener", portNumber);
 			return false;
 		}
 	}
+#endif
+
+#if WEBSERVE_ENABLE_IPV6_SUPPORT
+	if (m_configuration.isHTTPv6Enabled())
+	{
+		unsigned int portNumber = m_configuration.getHTTPv6PortNumber();
+		m_mainSocketV6HTTP.create(&m_logger, socketCreationFlags, true);
+
+		if (!m_mainSocketV6HTTP.bind(portNumber, true))
+		{
+			m_logger.critical("Can't bind to port: %u for HTTPv6 listener", portNumber);
+			return false;
+		}
+	}
+#if WEBSERVE_ENABLE_HTTPS_SUPPORT
+	if (m_configuration.isHTTPSv6Enabled())
+	{
+		unsigned int portNumber = m_configuration.getHTTPSv6PortNumber();
+		m_mainSocketV6HTTPS.create(&m_logger, socketCreationFlags, true);
+	
+		if (!m_mainSocketV6HTTPS.bind(portNumber, true))
+		{
+			m_logger.critical("Can't bind to port: %u for HTTPSv6 listener", portNumber);
+			return false;
+		}
+	}
+#endif
 #endif
 
 	// Not great this being done in this class this way, but it's simpler for the moment...
@@ -184,44 +209,109 @@ void WebServerService::start()
 		return;
 	}
 
-	if (m_configuration.isHTTPEnabled())
+	// TODO: All this HTTP/S / IPv4/v6 stuff is a mess now, but once we know how useful it is in practice,
+	//       it should be possible to simplify/condense this HTTPv4/HTTPSv4/HTTPv6 stuff in the future
+	//       and reduce duplication, but while we add v6 support, this is simpler and keeps the new
+	//       functionality somewhat siloed...
+	
+	// TODO: also, the returns here for the #else for not compiled in support should really be done in
+	//       bindSocketsAndPrepare() with return falses...
+
+	if (m_configuration.isHTTPv4Enabled())
 	{
-		if (!m_mainSocketHTTP.listen(50))
+		if (!m_mainSocketV4HTTP.listen(50))
 		{
 			m_logger.critical("Could not listen on HTTP socket.");
 			return;
 		}
 		
-		unsigned int portNumberHTTP = m_configuration.getHTTPPortNumber();
+		unsigned int portNumberHTTP = m_configuration.getHTTPv4PortNumber();
 		m_logger.notice("Server listening on port: %u for HTTP", portNumberHTTP);
 	}
 	
-#if WEBSERVE_ENABLE_HTTPS_SUPPORT
-	if (m_configuration.isHTTPSEnabled())
+	if (m_configuration.isHTTPSv4Enabled())
 	{
-		if (!m_mainSocketHTTPS.listen(50))
+#if WEBSERVE_ENABLE_HTTPS_SUPPORT
+		if (!m_mainSocketV4HTTPS.listen(50))
 		{
 			m_logger.critical("Could not listen on HTTPS socket.");
 			return;
 		}
 		
-		unsigned int portNumberHTTPS = m_configuration.getHTTPSPortNumber();
+		unsigned int portNumberHTTPS = m_configuration.getHTTPSv4PortNumber();
 		m_logger.notice("Server listening on port: %u for HTTPS", portNumberHTTPS);
-	}
+#else
+		m_logger.critical("HTTPS support is not compiled in...");
 #endif
+	}
+
+	if (m_configuration.isHTTPv6Enabled())
+	{
+#if WEBSERVE_ENABLE_IPV6_SUPPORT
+		if (!m_mainSocketV6HTTP.listen(50))
+		{
+			m_logger.critical("Could not listen on HTTPv6 socket.");
+			return;
+		}
+
+		unsigned int portNumberHTTP = m_configuration.getHTTPv6PortNumber();
+		m_logger.notice("Server listening on port: %u for HTTPv6", portNumberHTTP);
+#else
+		m_logger.critical("IPv6 support is not compiled in...");
+		return;
+#endif
+	}
+	
+	if (m_configuration.isHTTPSv6Enabled())
+	{
+#if WEBSERVE_ENABLE_HTTPS_SUPPORT
+#if WEBSERVE_ENABLE_IPV6_SUPPORT
+		if (!m_mainSocketV6HTTPS.listen(50))
+		{
+			m_logger.critical("Could not listen on HTTPSv6 socket.");
+			return;
+		}
+		
+		unsigned int portNumberHTTPS = m_configuration.getHTTPSv6PortNumber();
+		m_logger.notice("Server listening on port: %u for HTTPSv6", portNumberHTTPS);
+#else
+		m_logger.critical("IPv6 support is not compiled in...");
+		return;
+#endif
+#else
+		m_logger.critical("HTTPS support is not compiled in...");
+		return;
+#endif
+	}
 
 	m_active = true;
 
-	if (m_configuration.isHTTPEnabled())
+	if (m_configuration.isHTTPv4Enabled())
 	{
-		m_acceptHTTPConnectionThread = std::thread(&WebServerService::acceptHTTPConnectionThreadFunction, this);
+		m_acceptHTTPV4ConnectionThread = std::thread(&WebServerService::acceptConnectionThreadFunction, this, &m_mainSocketV4HTTP, false);
 	}
 	
 #if WEBSERVE_ENABLE_HTTPS_SUPPORT
-	if (m_configuration.isHTTPSEnabled())
+	if (m_configuration.isHTTPSv4Enabled())
 	{
-		m_acceptHTTPSConnectionThread = std::thread(&WebServerService::acceptHTTPSConnectionThreadFunction, this);
+		m_acceptHTTPSV4ConnectionThread = std::thread(&WebServerService::acceptConnectionThreadFunction, this, &m_mainSocketV4HTTPS, true);
 	}
+#endif
+
+#if WEBSERVE_ENABLE_IPV6_SUPPORT
+	if (m_configuration.isHTTPv6Enabled())
+	{
+		m_acceptHTTPV6ConnectionThread = std::thread(&WebServerService::acceptConnectionThreadFunction, this, &m_mainSocketV6HTTP, false);
+	}
+#endif
+	
+#if WEBSERVE_ENABLE_HTTPS_SUPPORT
+#if WEBSERVE_ENABLE_IPV6_SUPPORT
+	if (m_configuration.isHTTPSv6Enabled())
+	{
+		m_acceptHTTPSV6ConnectionThread = std::thread(&WebServerService::acceptConnectionThreadFunction, this, &m_mainSocketV6HTTPS, true);
+	}
+#endif
 #endif
 
 	for (unsigned int i = 0; i < m_configuration.getNumWorkerThreads(); i++)
@@ -263,16 +353,32 @@ void WebServerService::start()
 		workerThread.join();
 	}
 
-	if (m_configuration.isHTTPEnabled())
+	if (m_configuration.isHTTPv4Enabled())
 	{
-		m_acceptHTTPConnectionThread.join();
+		m_acceptHTTPV4ConnectionThread.join();
 	}
 
 #if WEBSERVE_ENABLE_HTTPS_SUPPORT
-	if (m_configuration.isHTTPSEnabled())
+	if (m_configuration.isHTTPSv4Enabled())
 	{
-		m_acceptHTTPSConnectionThread.join();
+		m_acceptHTTPSV4ConnectionThread.join();
 	}
+#endif
+
+#if WEBSERVE_ENABLE_IPV6_SUPPORT
+	if (m_configuration.isHTTPv6Enabled())
+	{
+		m_acceptHTTPV6ConnectionThread.join();
+	}
+#endif
+	
+#if WEBSERVE_ENABLE_HTTPS_SUPPORT
+#if WEBSERVE_ENABLE_IPV6_SUPPORT
+	if (m_configuration.isHTTPSv6Enabled())
+	{
+		m_acceptHTTPSV6ConnectionThread.join();
+	}
+#endif	
 #endif
 }
 
@@ -282,18 +388,33 @@ void WebServerService::stop()
 	
 	m_logger.notice("Stopping web service.");
 	
-	if (m_configuration.isHTTPEnabled())
+	if (m_configuration.isHTTPv4Enabled())
 	{
-		m_mainSocketHTTP.close();
+		m_mainSocketV4HTTP.close();
 	}
 	
 #if WEBSERVE_ENABLE_HTTPS_SUPPORT
-	if (m_configuration.isHTTPSEnabled())
+	if (m_configuration.isHTTPSv4Enabled())
 	{
-		m_mainSocketHTTPS.close();
+		m_mainSocketV4HTTPS.close();
+	}
+#endif
+
+#if WEBSERVE_ENABLE_IPV6_SUPPORT
+	if (m_configuration.isHTTPv6Enabled())
+	{
+		m_mainSocketV6HTTP.close();
 	}
 #endif
 	
+#if WEBSERVE_ENABLE_HTTPS_SUPPORT
+#if WEBSERVE_ENABLE_IPV6_SUPPORT
+	if (m_configuration.isHTTPSv6Enabled())
+	{
+		m_mainSocketV6HTTPS.close();
+	}
+#endif
+#endif
 	{
 		
 #if USE_ADDITIONAL_ATOMIC_CONDITION_VARIABLE
@@ -357,16 +478,16 @@ void WebServerService::workerThreadFunction(WebServerThreadConfig* pThreadConfig
 	}
 }
 
-void WebServerService::acceptHTTPConnectionThreadFunction()
+void WebServerService::acceptConnectionThreadFunction(Socket* bindSocket, bool secureType)
 {
 	while (m_active)
 	{
 		RequestConnection newConnection(new Socket(), nullptr);
+		newConnection.https = secureType;
 
-		if (m_mainSocketHTTP.accept(newConnection.pRawSocket))
+		if (bindSocket->accept(newConnection.pRawSocket))
 		{
 			newConnection.pRawSocket->setLogger(&m_logger);
-
 
 			{
 				std::unique_lock<std::mutex> lock(m_lock);
@@ -407,63 +528,6 @@ void WebServerService::acceptHTTPConnectionThreadFunction()
 		}
 	}
 }
-
-#if WEBSERVE_ENABLE_HTTPS_SUPPORT
-void WebServerService::acceptHTTPSConnectionThreadFunction()
-{
-	while (m_active)
-	{
-		RequestConnection newConnection(new Socket(), nullptr);
-		newConnection.https = true;
-
-		if (m_mainSocketHTTPS.accept(newConnection.pRawSocket))
-		{
-			newConnection.pRawSocket->setLogger(&m_logger);
-
-			{
-				std::unique_lock<std::mutex> lock(m_lock);
-
-				bool wasEmpty = m_aPendingConnections.empty();
-
-				m_aPendingConnections.emplace(newConnection);
-//			}
-
-				// TODO: is this a good idea?
-				if (wasEmpty)
-				{
-#if USE_ADDITIONAL_ATOMIC_CONDITION_VARIABLE
-					m_haveNewConnection = true;
-#endif
-
-//					fprintf(stderr, "Notifying pool...\n");
-
-					// Note: ideally, we should be able to use notify_one() here...
-//					m_newConnectionEvent.notify_one();
-
-					// however, in practice, with keep-alive (pipelined requests) enabled,
-					// we seem to end up with threads waiting on the condition, but with m_aPendingConnections
-					// having multiple items in it ready to be consumed. using notify_all() appears to stop this
-					// happening. It's possible this is due to the if (wasEmpty) condition above or some other
-					// issue with the logic / condition_variable...
-					m_newConnectionEvent.notify_all();
-				}
-			}
-		}
-		else
-		{
-			if (m_active)
-			{
-				// only log this if we're still active, otherwise we print this when stopping the service...
-				int errorNumber = errno;
-				m_logger.error("Can't accept() new connection, error code: %i", errorNumber);
-				
-				// throttle things a bit, so we don't get into an endless loop...
-				std::this_thread::sleep_for(std::chrono::seconds(10));
-			}
-		}
-	}
-}
-#endif
 
 void WebServerService::handleConnection(RequestConnection& connection)
 {

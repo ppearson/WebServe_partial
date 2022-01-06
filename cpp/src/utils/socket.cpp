@@ -1,6 +1,6 @@
 /*
  WebServe
- Copyright 2018-2020 Peter Pearson.
+ Copyright 2018-2022 Peter Pearson.
  taken originally from:
  Sitemon
  Copyright 2010 Peter Pearson.
@@ -55,7 +55,7 @@
 static const unsigned int kMaxSendLength = 1024;
 static const unsigned int kMaxRecvLength = 4096;
 
-Socket::Socket() : m_sock(-1), m_port(-1), m_pLogger(nullptr)
+Socket::Socket() : m_version(0), m_sock(-1), m_port(-1), m_pLogger(nullptr)
 #if SOCK_LEAK_DETECTOR
 	, m_pLeak(nullptr)
 #endif
@@ -63,22 +63,13 @@ Socket::Socket() : m_sock(-1), m_port(-1), m_pLogger(nullptr)
 	memset(&m_addr, 0, sizeof(m_addr));
 }
 
-Socket::Socket(Logger* pLogger, int port) : m_sock(-1), m_port(port), m_pLogger(nullptr)
+Socket::Socket(Logger* pLogger, const std::string& host, int port, bool v6) : m_version(0), m_sock(-1), m_port(port), m_host(host), m_pLogger(nullptr)
 #if SOCK_LEAK_DETECTOR
 	, m_pLeak(nullptr)
 #endif
 {
 	memset(&m_addr, 0, sizeof(m_addr));
-	create(pLogger);
-}
-
-Socket::Socket(Logger* pLogger, const std::string& host, int port) : m_sock(-1), m_port(port), m_host(host), m_pLogger(nullptr)
-#if SOCK_LEAK_DETECTOR
-	, m_pLeak(nullptr)
-#endif
-{
-	memset(&m_addr, 0, sizeof(m_addr));
-	create(pLogger);
+	create(pLogger, 0, v6);
 }
 
 Socket::~Socket()
@@ -86,9 +77,22 @@ Socket::~Socket()
 	close();
 }
 
-bool Socket::create(Logger* pLogger, unsigned int flags)
+bool Socket::create(Logger* pLogger, unsigned int flags, bool v6)
 {
-	m_sock = socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
+	if (!v6)
+	{
+		m_sock = socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
+		m_version = 4;
+	}
+	else
+	{
+#if WEBSERVE_ENABLE_IPV6_SUPPORT
+		m_sock = socket(AF_INET6, SOCK_STREAM, IPPROTO_IP);
+		m_version = 6;
+#else
+		return false;
+#endif
+	}
 
 	m_pLogger = pLogger;
 	
@@ -108,6 +112,21 @@ bool Socket::create(Logger* pLogger, unsigned int flags)
 	if (::setsockopt(m_sock, SOL_SOCKET, SO_NOSIGPIPE, (const char*)&on, sizeof(on)) == -1)
 		return false;
 #endif
+	
+#if WEBSERVE_ENABLE_IPV6_SUPPORT
+	if (v6)
+	{
+		// Linux defaults this to off, but MacOS has it on by default, and until we refactor the socket
+		// logic to nicely handle dual v4/v6 interfaces (which may or may not be what we want to do?), keep
+		// them completely separate.
+		if (::setsockopt(m_sock, IPPROTO_IPV6, IPV6_V6ONLY, (const char*)&on, sizeof(on)) == -1)
+		{
+			int errorNumber = errno;
+			fprintf(stderr, "Socket setsockopt(..,IPV6_V6ONLY,..) error: %s\n", strerror(errorNumber));
+			return false;
+		}
+	}
+#endif
 
 	if (flags & SOCKOPT_FASTOPEN)
 	{
@@ -122,19 +141,52 @@ bool Socket::create(Logger* pLogger, unsigned int flags)
 	return true;
 }
 
-bool Socket::bind(const int port)
+bool Socket::bind(const int port, bool v6)
 {
 	if (!isValid())
 		return false;
+
+	socklen_t addrLen = 0;
+
+	// TODO: do we need to memset() the struct fully?
+
+	if (!v6)
+	{
+		sockaddr_in* v4 = (sockaddr_in*)&m_addr;
+		v4->sin_family = AF_INET;
+		v4->sin_addr.s_addr = htonl(INADDR_ANY);
+		v4->sin_port = htons(port);
+
+		addrLen = sizeof(sockaddr_in);
+
+		m_version = 4;
+	}
+	else
+	{
+#if WEBSERVE_ENABLE_IPV6_SUPPORT
+		sockaddr_in6* v6 = (sockaddr_in6*)&m_addr;
+		v6->sin6_family = AF_INET6;
+		v6->sin6_flowinfo = 0;
+
+//		v6->sin6_scope_id = ?; // TODO....
+		v6->sin6_port = htons(port);
+		v6->sin6_addr = in6addr_any;
+
+		addrLen = sizeof(sockaddr_in6);
+
+		m_version = 6;
+#else
+
+#endif
+	}
 	
-	m_addr.sin_family = AF_INET;
-	m_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-	m_addr.sin_port = htons(port);
-	
-	int ret = ::bind(m_sock, (struct sockaddr *)&m_addr, sizeof(m_addr));
-	
+	int ret = ::bind(m_sock, (struct sockaddr*)&m_addr, addrLen);
 	if (ret == -1)
+	{
+		int errorNumber = errno;
+		fprintf(stderr, "Socket bind() error: %s\n", strerror(errorNumber));
 		return false;
+	}
 	
 	return true;	
 }
@@ -145,9 +197,12 @@ bool Socket::listen(const int connections) const
 		return false;
 	
 	int ret = ::listen(m_sock, connections);
-	
 	if (ret == -1)
+	{
+		int errorNumber = errno;
+		fprintf(stderr, "Socket listen() error: %s\n", strerror(errorNumber));
 		return false;
+	}
 	
 	return true;
 }
@@ -157,25 +212,25 @@ bool Socket::connect()
 	if (!isValid())
 		return false;
 	
-	m_addr.sin_family = AF_INET;
-#ifndef __SUNPRO_CC
-	m_addr.sin_addr.s_addr = inet_addr(m_host.c_str());
-#endif
-	m_addr.sin_port = htons(m_port);
-	
-	int status = 0;
-#ifdef __SUNPRO_CC
-	struct hostent *hp;
-	hp = gethostbyname(m_host.c_str());
-	m_addr.sin_addr.s_addr = ((struct in_addr *)(hp->h_addr))->s_addr;
-#else
-//	status = inet_pton(AF_INET, m_host.c_str(), &m_addr.sin_addr);
-	struct hostent *hp;
-	hp = gethostbyname(m_host.c_str());
-	m_addr.sin_addr.s_addr = ((struct in_addr *)(hp->h_addr))->s_addr;
-#endif
+	if (m_version == 4)
+	{
+		sockaddr_in* v4 = (sockaddr_in*)&m_addr;
 
-	status = ::connect(m_sock, (sockaddr*)&m_addr, sizeof(m_addr));
+		v4->sin_family = AF_INET;
+		v4->sin_addr.s_addr = inet_addr(m_host.c_str());
+		v4->sin_port = htons(m_port);
+
+	//	status = inet_pton(AF_INET, m_host.c_str(), &m_addr.sin_addr);
+		struct hostent *hp;
+		hp = gethostbyname(m_host.c_str());
+		v4->sin_addr.s_addr = ((struct in_addr *)(hp->h_addr))->s_addr;
+	}
+	else
+	{
+		return false;
+	}
+
+	int status = ::connect(m_sock, (sockaddr*)&m_addr, sizeof(m_addr));
 	
 	if (status != 0)
 		return false;
@@ -228,11 +283,24 @@ bool Socket::accept(Socket* sock) const
 	if (!isValid())
 		return false;
 	
-	int addrSize = sizeof(sock->m_addr);
-	sock->m_sock = ::accept(m_sock, (sockaddr*)&sock->m_addr, (socklen_t*)&addrSize);
+	socklen_t addrSize = sizeof(sock->m_addr);
+	sock->m_sock = ::accept(m_sock, (sockaddr*)&sock->m_addr, &addrSize);
 	
 	if (sock->m_sock <= 0)
 		return false;
+
+	if (sock->m_addr.ss_family == AF_INET)
+	{
+		sock->m_version = 4;
+	}
+#if WEBSERVE_ENABLE_IPV6_SUPPORT
+	else if (sock->m_addr.ss_family == AF_INET6)
+	{
+		sock->m_version = 6;
+	}
+#else
+	return false;
+#endif
 	
 #if SOCK_LEAK_DETECTOR
 	sock->m_pLeak = new char[64];

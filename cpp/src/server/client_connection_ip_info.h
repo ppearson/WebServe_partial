@@ -1,6 +1,6 @@
 /*
  WebServe
- Copyright 2019 Peter Pearson.
+ Copyright 2018-2022 Peter Pearson.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  You may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 
 #include <string>
 
-#include <arpa/inet.h>
+#include <netinet/in.h>
 
 #include "utils/hash.h"
 
@@ -46,7 +46,10 @@ public:
 protected:
 	unsigned int		m_ipVersion;
 
-	in_addr_t			m_ip;
+	in_addr_t			m_ipv4;
+#if WEBSERVE_ENABLE_IPV6_SUPPORT
+	in6_addr			m_ipv6;
+#endif
 };
 
 #endif // CLIENT_CONNECTION_IP_INFO_H
