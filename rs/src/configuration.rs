@@ -198,7 +198,7 @@ impl Configuration {
             let line = line.unwrap();
 
             // ignore empty lines and comments
-            if line.len() == 0 || line.starts_with('#') {
+            if line.is_empty() || line.starts_with('#') {
                 continue;
             }
 

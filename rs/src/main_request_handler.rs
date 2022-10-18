@@ -43,6 +43,8 @@ pub struct MainRequestHandler {
 
     have_host_sub_request_handlers: bool,
     host_handler_lookups:           HashMap<String, usize>,
+
+    fallback_handler:               Option<usize>,
 }
 
 impl MainRequestHandler {
@@ -51,7 +53,8 @@ impl MainRequestHandler {
         let mut mrh = MainRequestHandler{ sub_request_handlers: Vec::with_capacity(0),
                                           configuration: config.clone(),
                                           have_dir_sub_request_handlers: false, dir_handler_lookups: HashMap::new(),
-                                          have_host_sub_request_handlers: false, host_handler_lookups: HashMap::new() };
+                                          have_host_sub_request_handlers: false, host_handler_lookups: HashMap::new(),
+                                          fallback_handler: None };
         mrh.configure_sub_request_handlers(config);
 
         return mrh;
@@ -71,7 +74,7 @@ impl MainRequestHandler {
                 self.sub_request_handlers.push(Box::new(new_handler));
             }
             else {
-                println!("Unhandled site config type...");
+                eprintln!("Error: Unhandled site config type...");
                 continue;
             }
 
@@ -83,6 +86,14 @@ impl MainRequestHandler {
             else if def_type == "host" {
                 self.have_host_sub_request_handlers = true;
                 self.host_handler_lookups.insert(def_value.to_string(), count);
+            }
+            else if def_type == "*" {
+                // it's a wildcard fallback
+                if self.fallback_handler.is_some() {
+                    eprintln!("Error: A fallback handler exists already.");
+                    continue;
+                }
+                self.fallback_handler = Some(count);
             }
 
             count += 1;
@@ -128,10 +139,8 @@ impl MainRequestHandler {
 
             // try hosts first...
             if self.have_host_sub_request_handlers {
-                let sub_handler_index = self.host_handler_lookups.get(&web_request.host_value);
-                // could (should?) use match, but prefer this...
-                if sub_handler_index.is_some() {
-                    let sub_handler = &self.sub_request_handlers[*sub_handler_index.unwrap()];
+                if let Some(sub_handler_index) = self.host_handler_lookups.get(&web_request.host_value) {
+                    let sub_handler = &self.sub_request_handlers[*sub_handler_index];
 
                     // TODO: return value...
                     handle_request_result = sub_handler.handle_request(&connection, &web_request, &request_path);
@@ -149,13 +158,16 @@ impl MainRequestHandler {
                     first_level_dir = request_path.clone();
                 }
 
-                let sub_handler_index = self.dir_handler_lookups.get(&first_level_dir);
-                // could (should?) use match, but prefer this...
-                if sub_handler_index.is_some() {
-                    let sub_handler = &self.sub_request_handlers[*sub_handler_index.unwrap()];
+                if let Some(sub_handler_index) = self.dir_handler_lookups.get(&first_level_dir) {
+                    let sub_handler = &self.sub_request_handlers[*sub_handler_index];
                     // TODO: return value...
                     handle_request_result = sub_handler.handle_request(&connection, &web_request, &remainder_uri);
                 }
+            }
+
+            if !handle_request_result.was_handled() && self.fallback_handler.is_some() {
+                let sub_handler = &self.sub_request_handlers[self.fallback_handler.unwrap()];
+                handle_request_result = sub_handler.handle_request(&connection, &web_request, &request_path);
             }
 
             if handle_request_result.was_error() {

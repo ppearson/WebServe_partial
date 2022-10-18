@@ -38,7 +38,7 @@ pub fn combine_paths(path0: &str, path1: &str) -> String {
 
     let mut final_path = path0.to_string();
     if !path0.ends_with('/') {
-        final_path.push_str("/");
+        final_path.push('/');
     }
 
     final_path.push_str(path1);

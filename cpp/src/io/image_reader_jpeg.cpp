@@ -78,6 +78,12 @@ bool ImageReaderJPEG::getImageDetails(const std::string& filePath, bool extractE
 	imageDetails.width = (unsigned int)cinfo.output_width;
 	imageDetails.height = (unsigned int)cinfo.output_height;
 
+	imageDetails.channels = 3;
+
+	// technically, libjpeg can sort of support 12-bit depth as well,
+	// but it's *very* rare (single-channel 12-bit is occasionally used)
+	imageDetails.pixelBitDepth = 8;
+
 	if (extractEXIF)
 	{
 		jpeg_saved_marker_ptr pMarker = cinfo.marker_list;
@@ -158,8 +164,6 @@ bool ImageReaderJPEG::extractEXIFMetaData(const std::string& filePath, RawEXIFMe
 
 	return found;
 }
-
-
 
 Image3f* ImageReaderJPEG::readColour3fImage(const std::string& filePath) const
 {

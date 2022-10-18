@@ -111,7 +111,7 @@ impl GetResponseString for WebResponseGeneratorFile {
                 file.read_to_end(&mut buffer).unwrap();
 
                 // until we get full binary chucked working properly
-                contents = unsafe { String::from_utf8_unchecked(buffer).to_string() } ;
+                contents = unsafe { String::from_utf8_unchecked(buffer) } ;
             }
             else {
                 contents = fs::read_to_string(&self.file).unwrap();
@@ -172,7 +172,7 @@ impl GetResponseString for WebResponseGeneratorTemplateFile {
                     if let Some(pos) = line.find("<%%>") {
                         let mut templated_line = line.clone();
                         templated_line.replace_range(pos..pos+4, &self.content[num_matches as usize]);
-                        templated_line.push_str("\n");
+                        templated_line.push('\n');
     
                         contents.push_str(&templated_line);
                         num_matches += 1;
@@ -180,13 +180,13 @@ impl GetResponseString for WebResponseGeneratorTemplateFile {
                     else {
                         // just add the line...
                         contents.push_str(&line);
-                        contents.push_str("\n");
+                        contents.push('\n');
                     }
                 }
                 else {
                     // just add the line...
                     contents.push_str(&line);
-                    contents.push_str("\n");
+                    contents.push('\n');
                 }
             }
             else {
@@ -195,7 +195,7 @@ impl GetResponseString for WebResponseGeneratorTemplateFile {
                     if let Some(pos) = line.find(&find_string) {
                         let mut templated_line = line.clone();
                         templated_line.replace_range(pos..pos+5, &self.content[num_matches as usize]);
-                        templated_line.push_str("\n");
+                        templated_line.push('\n');
     
                         contents.push_str(&templated_line);
                         num_matches += 1;
@@ -203,13 +203,13 @@ impl GetResponseString for WebResponseGeneratorTemplateFile {
                     else {
                         // just add the line...
                         contents.push_str(&line);
-                        contents.push_str("\n");
+                        contents.push('\n');
                     }
                 }
                 else {
                     // just add the line...
                     contents.push_str(&line);
-                    contents.push_str("\n");
+                    contents.push('\n');
                 }
             }
         }

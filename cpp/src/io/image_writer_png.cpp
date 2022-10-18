@@ -84,7 +84,7 @@ bool ImageWriterPNG::writeImage(const std::string& filePath, const Image3f& imag
 		fclose(pFile);
 		return false;
 	}
-	
+
 	png_init_io(pPNG, pFile);
 
 	png_set_IHDR(pPNG, pInfo, width, height, bitDepth, colourType, PNG_INTERLACE_NONE,

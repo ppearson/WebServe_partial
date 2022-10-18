@@ -1,6 +1,6 @@
 /*
- WebServe (Rust port)
- Copyright 2021 Peter Pearson.
+ WebServe
+ Copyright 2018-2022 Peter Pearson.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  You may not use this file except in compliance with the License.
@@ -16,14 +16,21 @@
  ---------
 */
 
+#ifndef IMAGE_READER_AVIF_H
+#define IMAGE_READER_AVIF_H
 
-pub struct RequestConnection {
-pub tpc_stream:         std::net::TcpStream,
-}
+#include "io/image_reader.h"
 
-impl RequestConnection {
+class ImageReaderAVIF : public ImageReader
+{
+public:
+	ImageReaderAVIF();
 
-    pub fn create(tpc_stream: std::net::TcpStream) -> RequestConnection {
-        RequestConnection { tpc_stream }
-    }
-}
+	virtual bool getImageDetails(const std::string& filePath, bool extractEXIF, ImageDetails& imageDetails) const override;
+
+	virtual bool extractEXIFMetaData(const std::string& filePath, RawEXIFMetaData& exifData) const override;
+
+	virtual Image3f* readColour3fImage(const std::string& filePath) const override;
+};
+
+#endif // IMAGE_READER_AVIF_H

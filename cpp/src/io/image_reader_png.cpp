@@ -25,12 +25,15 @@
 
 #include "image/image3f.h"
 
+#include "data_conversion.h"
+
 #include "image/colour_space.h"
 
 struct PNGInfra
 {
 	PNGInfra() : pFile(nullptr),
-		bitDepth(0)
+		bitDepth(0),
+		channels(0)
 	{
 	}
 
@@ -42,6 +45,8 @@ struct PNGInfra
 	png_bytepp		pRows;
 	
 	int				bitDepth;
+
+	unsigned int	channels;
 };
 
 ImageReaderPNG::ImageReaderPNG() : ImageReader()
@@ -117,6 +122,20 @@ ImageReaderPNG::ImageType ImageReaderPNG::readData(const std::string& filePath, 
 
 	ImageType type = eInvalid;
 
+	// record what the image actually is (ish)
+	if (colorType == PNG_COLOR_TYPE_RGB)
+	{
+		infra.channels = 3;
+	}
+	else if (colorType == PNG_COLOR_TYPE_RGBA)
+	{
+		infra.channels = 4;
+	}
+	else if (colorType == PNG_COLOR_TYPE_GRAY)
+	{
+		infra.channels = 1;
+	}
+
 	if (!wantAlpha)
 	{
 		// add black Alpha
@@ -159,7 +178,17 @@ ImageReaderPNG::ImageType ImageReaderPNG::readData(const std::string& filePath, 
 
 bool ImageReaderPNG::getImageDetails(const std::string& filePath, bool extractEXIF, ImageDetails& imageDetails) const
 {
-	return false;
+	PNGInfra infra;
+	if (readData(filePath, infra, false) != eRGBA)
+		return false;
+
+	imageDetails.width = infra.width;
+	imageDetails.height = infra.height;
+
+	imageDetails.pixelBitDepth = infra.bitDepth;
+	imageDetails.channels = infra.channels;
+
+	return true;
 }
 
 bool ImageReaderPNG::extractEXIFMetaData(const std::string& filePath, RawEXIFMetaData& exifData) const
@@ -173,34 +202,69 @@ Image3f* ImageReaderPNG::readColour3fImage(const std::string& filePath) const
 	if (readData(filePath, infra, false) != eRGBA)
 		return nullptr;
 	
-	// TODO: do we want this happening?! It quantises the 16 to 8 so we lose the precision?
-	if (infra.bitDepth == 16)
-		png_set_strip_16(infra.pPNG);
-
 	Image3f* pImage3f = new Image3f(infra.width, infra.height);
 
 	// convert to linear float
-	for (unsigned int i = 0; i < infra.height; i++)
+
+	if (infra.bitDepth == 16)
 	{
-		png_byte* pLineData = infra.pRows[i];
+		const float invShortConvert = 1.0f / 65535.0f;
 
-		// need to flip the height round...
-		unsigned int y = infra.height - i - 1;
-
-		Colour3f* pImageRow = pImage3f->getRowPtr(y);
-
-		for (unsigned int x = 0; x < infra.width; x++)
+		for (unsigned int i = 0; i < infra.height; i++)
 		{
-			unsigned char red = *pLineData++;
-			unsigned char green = *pLineData++;
-			unsigned char blue = *pLineData++;
-			pLineData++;
+			png_byte* pLineData = infra.pRows[i];
+			uint16_t* typedData = (uint16_t*)pLineData;
 
-			pImageRow->r = ColourSpace::convertSRGBToLinearLUT(red);
-			pImageRow->g = ColourSpace::convertSRGBToLinearLUT(green);
-			pImageRow->b = ColourSpace::convertSRGBToLinearLUT(blue);
+			// need to flip the height round...
+			unsigned int y = infra.height - i - 1;
 
-			pImageRow++;
+			Colour3f* pImageRow = pImage3f->getRowPtr(y);
+
+			for (unsigned int x = 0; x < infra.width; x++)
+			{
+				uint16_t red = *typedData++;
+				uint16_t green = *typedData++;
+				uint16_t blue = *typedData++;
+				typedData++;
+
+				red = reverseUInt16Bytes(red);
+				green = reverseUInt16Bytes(green);
+				blue = reverseUInt16Bytes(blue);
+
+				pImageRow->r = (float)red * invShortConvert;
+				pImageRow->g = (float)green * invShortConvert;
+				pImageRow->b = (float)blue * invShortConvert;
+
+				ColourSpace::convertSRGBToLinearAccurate(*pImageRow);
+
+				pImageRow++;
+			}
+		}
+	}
+	else
+	{
+		for (unsigned int i = 0; i < infra.height; i++)
+		{
+			png_byte* pLineData = infra.pRows[i];
+
+			// need to flip the height round...
+			unsigned int y = infra.height - i - 1;
+
+			Colour3f* pImageRow = pImage3f->getRowPtr(y);
+
+			for (unsigned int x = 0; x < infra.width; x++)
+			{
+				unsigned char red = *pLineData++;
+				unsigned char green = *pLineData++;
+				unsigned char blue = *pLineData++;
+				pLineData++;
+
+				pImageRow->r = ColourSpace::convertSRGBToLinearLUT(red);
+				pImageRow->g = ColourSpace::convertSRGBToLinearLUT(green);
+				pImageRow->b = ColourSpace::convertSRGBToLinearLUT(blue);
+
+				pImageRow++;
+			}
 		}
 	}
 		

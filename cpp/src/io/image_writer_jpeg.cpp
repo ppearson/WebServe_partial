@@ -153,7 +153,7 @@ bool ImageWriterJPEG::writeImage(const std::string& filePath, const Image3f& ima
 	
 	jpeg_destroy_compress(&compressInfo);
 	
-	return true;	
+	return true;
 }
 
 bool ImageWriterJPEG::writeRawImageCopy(const std::string& originalFilePath, const std::string& newFilePath, const WriteRawParams& params) const

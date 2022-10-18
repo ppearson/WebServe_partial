@@ -131,6 +131,20 @@ struct Colour3f
 		return (0.2126f * r) + (0.7152f * g) + (0.0722f * b);
 	}
 
+	void minColour(const Colour3f& other)
+	{
+		r = std::min(r, other.r);
+		g = std::min(g, other.g);
+		b = std::min(b, other.b);
+	}
+
+	void maxColour(const Colour3f& other)
+	{
+		r = std::max(r, other.r);
+		g = std::max(g, other.g);
+		b = std::max(b, other.b);
+	}
+
 	float		r;
 	float		g;
 	float		b;

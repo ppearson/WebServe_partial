@@ -21,6 +21,7 @@
 #include "utils/string_helpers.h"
 
 #include <fstream>
+#include <cstdlib>
 
 Configuration::Configuration() :
 	m_workerThreads(16),
@@ -55,6 +56,12 @@ Configuration::Configuration() :
 
 bool Configuration::autoLoadFile()
 {
+	const char* webserveConfigEnv = getenv("WEBSERVE_CONFIG");
+	if (webserveConfigEnv && webserveConfigEnv[0] != '\0')
+	{
+		return loadFromFile(std::string(webserveConfigEnv));
+	}
+
 #ifdef __linux__
 	return loadFromFile("/home/peter/webserve.ini");
 #else

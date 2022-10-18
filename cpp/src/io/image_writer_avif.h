@@ -1,6 +1,6 @@
 /*
- WebServe (Rust port)
- Copyright 2021 Peter Pearson.
+ WebServe
+ Copyright 2018-2022 Peter Pearson.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  You may not use this file except in compliance with the License.
@@ -16,14 +16,17 @@
  ---------
 */
 
+#ifndef IMAGE_WRITER_AVIF_H
+#define IMAGE_WRITER_AVIF_H
 
-pub struct RequestConnection {
-pub tpc_stream:         std::net::TcpStream,
-}
+#include "io/image_writer.h"
 
-impl RequestConnection {
+class ImageWriterAVIF : public ImageWriter
+{
+public:
+	ImageWriterAVIF();
 
-    pub fn create(tpc_stream: std::net::TcpStream) -> RequestConnection {
-        RequestConnection { tpc_stream }
-    }
-}
+	virtual bool writeImage(const std::string& filePath, const Image3f& image, const WriteParams& writeParams) override;
+};
+
+#endif // IMAGE_WRITER_AVIF_H

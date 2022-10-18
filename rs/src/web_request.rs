@@ -232,7 +232,7 @@ impl WebRequest {
             }
 
             if !params_string.is_empty() {
-                params_string.push_str("&");
+                params_string.push('&');
             }
 
             // TODO: hex/string/encoding of things...

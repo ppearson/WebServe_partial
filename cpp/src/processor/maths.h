@@ -1,6 +1,6 @@
 /*
- WebServe (Rust port)
- Copyright 2021 Peter Pearson.
+ WebServe
+ Copyright 2018-2022 Peter Pearson.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  You may not use this file except in compliance with the License.
@@ -16,14 +16,23 @@
  ---------
 */
 
+#ifndef MATHS_H
+#define MATHS_H
 
-pub struct RequestConnection {
-pub tpc_stream:         std::net::TcpStream,
-}
+class MathsHelpers
+{
+public:
 
-impl RequestConnection {
+	template <typename T>
+	inline static T clamp(const T& value, const T& lower, const T& upper)
+	{
+		return std::max(lower, std::min(value, upper));
+	}
 
-    pub fn create(tpc_stream: std::net::TcpStream) -> RequestConnection {
-        RequestConnection { tpc_stream }
-    }
-}
+	inline static float clamp(const float& value, float lower = 0.0f, float upper = 1.0f)
+	{
+		return std::max(lower, std::min(value, upper));
+	}
+};
+
+#endif // MATHS_H

@@ -47,7 +47,7 @@ impl SubRequestHandler for FileRequestHandler {
         let base_path = Path::new(&self.base_path);
         let target_path = base_path.join(&remaining_uri).to_str().unwrap().to_string();
 
-        let wrg = WebResponseGeneratorFile::new(target_path.to_string());
+        let wrg = WebResponseGeneratorFile::new(target_path);
 
         let response = wrg.get_response_string();
 

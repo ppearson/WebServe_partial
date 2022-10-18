@@ -18,7 +18,7 @@
 
 const TOKEN_SET_SEPARATOR : char = ',';
 
-pub fn combine_set_tokens(str1: &String, str2: &String) -> String {
+pub fn combine_set_tokens(str1: &str, str2: &str) -> String {
     // for the moment, just append the two strings together, making sure there's a seperating token seperator char between them,
 	// but this is likely going to require being made more robust in the future...
 
@@ -33,7 +33,7 @@ pub fn combine_set_tokens(str1: &String, str2: &String) -> String {
     let mut combined_string = str1.to_string();
     if !combined_string.ends_with(TOKEN_SET_SEPARATOR) {
         combined_string.push(TOKEN_SET_SEPARATOR);
-        combined_string.push_str(" ");
+        combined_string.push(' ');
     }
 
     combined_string.push_str(str2);
@@ -46,7 +46,7 @@ pub fn simple_encode_string(input: &str) -> String {
     for chr in input.chars() {
         match chr {
             ' ' => {
-                output_string.push_str("+");
+                output_string.push('+');
             }
             '/' => {
                 output_string.push_str("%2F");

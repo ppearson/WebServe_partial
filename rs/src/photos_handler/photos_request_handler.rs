@@ -27,7 +27,6 @@ use crate::photos_handler::photos_common::{DateParams};
 use crate::photos_handler::photo_catalogue::PhotoCatalogue;
 use crate::photos_handler::photos_html_helpers::{GenMainSitenavCodeParams};
 use crate::photos_handler::photos_html_helpers;
-use crate::photos_handler::photo_results::{PhotoResults};
 use crate::photos_handler::photo_query_engine::{*};
 use crate::file_helpers::{combine_paths};
 use crate::uri_helpers::{split_first_level_directory_and_remainder};
@@ -117,7 +116,7 @@ impl SubRequestHandler for PhotosRequestHandler {
                 full_path = combine_paths(&self.main_web_content_path, request_path);
             }
 
-            let wrg = WebResponseGeneratorFile::new(full_path.to_string());
+            let wrg = WebResponseGeneratorFile::new(full_path);
 
             let response = wrg.get_response_string();
 
@@ -403,7 +402,7 @@ impl PhotosRequestHandler {
             // TODO: is obeying the pagination stuff wanted/worth it?
 		    //       can we jump to a particular photo index in some other way?
 
-            let mut content_and_pagination_html = "<a href=\"javascript:openPhotoSwipe();\">slide show overlay</a><br><br>\n";
+            let content_and_pagination_html = "<a href=\"javascript:openPhotoSwipe();\">slide show overlay</a><br><br>\n";
             if per_page > 0 {
 
             }

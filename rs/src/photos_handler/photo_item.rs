@@ -79,7 +79,7 @@ impl PhotoItem {
 
     // this version is only set from the date string in the .txt file, and will in most cases
     // be later overridden by the full date/time combo from the EXIF info of the photo itself...
-    pub fn set_basic_date(&mut self, date: &String) {
+    pub fn set_basic_date(&mut self, date: &str) {
         self.time_taken = Some(NaiveDate::parse_from_str(date, "%Y-%m-%d").unwrap().and_hms(1, 1, 1));
     }
 

@@ -127,7 +127,7 @@ impl PhotoQueryEngine {
                     cached_res.check_location_accessor_is_built();
                 }
             }
-            return cached_res.clone();
+            return cached_res;
         }
 
         let new_result = self.perform_query(photos, &query_params);

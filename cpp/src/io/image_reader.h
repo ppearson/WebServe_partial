@@ -79,13 +79,25 @@ public:
 
 	struct ImageDetails
 	{
-		ImageDetails() : width(0), height(0)
+		ImageDetails() : width(0), height(0), pixelBitDepth(0), channels(0),
+			colourSpace(ColourSpace::eUnknown)
 		{
-
 		}
+
+		enum class ColourSpace {
+			eUnknown,
+			eSRGB,
+			eAdobeRGB
+		};
 
 		unsigned int	width;
 		unsigned int	height;
+
+		unsigned int	pixelBitDepth;
+
+		unsigned int	channels;
+
+		ColourSpace		colourSpace;
 
 		RawEXIFMetaData	exifMetadata;
 	};

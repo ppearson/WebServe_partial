@@ -1,6 +1,6 @@
 /*
- WebServe (Rust port)
- Copyright 2021 Peter Pearson.
+ WebServe
+ Copyright 2018-2022 Peter Pearson.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  You may not use this file except in compliance with the License.
@@ -16,14 +16,31 @@
  ---------
 */
 
+#ifndef PIXEL_VALUE_HISTOGRAM_H
+#define PIXEL_VALUE_HISTOGRAM_H
 
-pub struct RequestConnection {
-pub tpc_stream:         std::net::TcpStream,
-}
+#include <vector>
 
-impl RequestConnection {
+class Image3f;
 
-    pub fn create(tpc_stream: std::net::TcpStream) -> RequestConnection {
-        RequestConnection { tpc_stream }
-    }
-}
+class PixelValueHistogram
+{
+public:
+	PixelValueHistogram();
+
+	void initWithBitDepthBins(unsigned int bitDepth);
+
+	unsigned int countPixelValues(const Image3f* pImage);
+
+
+private:
+	void addRawValue(float value);
+
+private:
+
+	// bins
+	std::vector<float>			m_upperBounds;
+	std::vector<unsigned int>	m_counts;
+};
+
+#endif // PIXEL_VALUE_HISTOGRAM_H

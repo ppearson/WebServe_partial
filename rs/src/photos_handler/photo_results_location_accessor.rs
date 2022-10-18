@@ -55,7 +55,7 @@ impl PhotoResultsLocationAccessor {
     pub fn build(&mut self, photos: &Vec<Arc<Box<PhotoItem>>>) {
         for photo in photos {
             // TODO: do we care about this for locations?
-            if !photo.time_taken.is_some() {
+            if photo.time_taken.is_none() {
                 continue;
             }
 

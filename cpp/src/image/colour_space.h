@@ -32,10 +32,15 @@ public:
 	ColourSpace();
 
 	static void convertSRGBToLinearAccurate(Colour3f& colour);
+	static void convertAdobeRGBToLinearAccurate(Colour3f& colour);
 
 	static void convertLinearToSRGBAccurate(Colour3f& colour);
 
 	static void convertLinearToSRGBFast(Colour3f& colour);
+
+
+	static Colour3f fromAdobeRGBtoXYZ(float r, float g, float b);
+	static Colour3f fromXYZtoLinearRGB(float X, float Y, float Z);
 
 	////
 
@@ -46,6 +51,18 @@ public:
 			out = value * 0.077399380804954f; // 1.0 / 12.92
 		else
 			out = powf(((value + 0.055f) * 0.947867298578199f), 2.4f); // powf(((value + 0.055f) / 1.055f), 2.4f)
+
+		return out;
+	}
+
+	// Not completely sure about this...
+	inline static float convertAdobeRGBToLinearAccurate(float value)
+	{
+		float out;
+		if (value <= 0.0f)
+			out = 0.0f;
+		else
+			out = powf(value, 2.19921875f);
 
 		return out;
 	}

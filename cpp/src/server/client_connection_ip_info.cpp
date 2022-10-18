@@ -58,6 +58,18 @@ bool ClientConnectionIPInfo::operator==(const ClientConnectionIPInfo& rhs) const
 #if WEBSERVE_ENABLE_IPV6_SUPPORT
 	else if (m_ipVersion == 6)
 	{
+//		for (unsigned int i = 0; i < 4; i++)
+//		{
+//#if __APPLE__
+//			if (m_ipv6.__u6_addr.__u6_addr32[i] != rhs.m_ipv6.__u6_addr.__u6_addr32[i])
+//#else
+//			if (m_ipv6.__in6_u.__u6_addr32[i] != rhs.m_ipv6.__in6_u.__u6_addr32[i])
+//#endif
+//			{
+//				return false;
+//			}
+//		}
+
 		return memcmp((const void*)&m_ipv6, (const void*)&rhs.m_ipv6, sizeof(m_ipv6));
 	}
 #endif
@@ -125,6 +137,14 @@ HashValue ClientConnectionIPInfo::getHash() const
 #if WEBSERVE_ENABLE_IPV6_SUPPORT
 	else if (m_ipVersion == 6)
 	{
+//		for (unsigned int i = 0; i < 4; i++)
+//		{
+//#if __APPLE__
+//			hash.addUInt(m_ipv6.__u6_addr.__u6_addr32[i]);
+//#else
+//			hash.addUInt(m_ipv6.__in6_u.__u6_addr32[i]);
+//#endif
+//		}
 		hash.addData((const unsigned char*)&m_ipv6, sizeof(m_ipv6));
 	}
 #endif

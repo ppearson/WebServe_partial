@@ -27,9 +27,9 @@ pub aspect_ratio:           f32,
 }
 
 impl PhotoRep {
-    pub fn new(relative_path: &String, width: u16, height: u16) -> PhotoRep {
+    pub fn new(relative_path: &str, width: u16, height: u16) -> PhotoRep {
         let aspect_ratio = (width as f32) / (height as f32);
-        PhotoRep { relative_file_path: relative_path.clone(), width, height, aspect_ratio }
+        PhotoRep { relative_file_path: relative_path.to_string(), width, height, aspect_ratio }
     }
 }
 

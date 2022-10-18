@@ -97,7 +97,7 @@ impl PhotoCatalogue {
 
     }
 
-    fn process_item_file_item(&mut self, photos_base_path: &String, item_file_directory_path: &String, item: &Item) {
+    fn process_item_file_item(&mut self, photos_base_path: &str, item_file_directory_path: &str, item: &Item) {
 
         if !item.has_value(&"res-0-img".to_string()) {
             // if we haven't got a full res property, ignore it completely

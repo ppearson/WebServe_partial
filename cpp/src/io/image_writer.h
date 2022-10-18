@@ -51,6 +51,15 @@ public:
 		eChromaSS_444
 	};
 
+	enum BitDepth
+	{
+		eBitDepth_8,
+		eBitDepth_10,
+		eBitDepth_12,
+		eBitDepth_16,
+		eBitDepth_32
+	};
+
 	struct WriteParams
 	{
 		WriteParams(float qual, ChromaSubSamplingType chromaSSType) :
@@ -60,12 +69,28 @@ public:
 
 		}
 
+		BitDepth				bitDepth				= eBitDepth_8;
+
 		// for jpeg
 		float					quality					= 0.96f;
-		ChromaSubSamplingType	chromaSubSamplingType	= eChromaSS_422;
+		ChromaSubSamplingType	chromaSubSamplingType	= eChromaSS_444;
 		
 		// for png
 		bool					bitDepth16				= false;
+
+
+		uint32_t getRawBitDepth() const
+		{
+			switch (bitDepth)
+			{
+				case eBitDepth_8:  return 8;
+				case eBitDepth_10: return 10;
+				case eBitDepth_12: return 12;
+				case eBitDepth_16: return 16;
+				case eBitDepth_32: return 32;
+			}
+			return 0;
+		}
 	};
 
 

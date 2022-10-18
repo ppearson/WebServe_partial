@@ -61,7 +61,7 @@ pub fn generate_main_sitenav_code(params: GenMainSitenavCodeParams) -> String {
         if params.add_view_settings_icon {
             final_html.push_str(&format!(r#"<img src="icons/settings_main_navbar.svg" onclick="toggleViewSettingsPopupPanel('{}')" style="float:right;">"#,
                                                             &params.view_settings_template_prefix));
-            final_html.push_str("\n");
+            final_html.push('\n');
 
             let path = format!("{}view_settings_popup_div.stmpl", params.view_settings_template_prefix);
             final_html.push_str(&load_template_snippit(&combine_paths(&params.main_web_content_path, &path)));
@@ -205,7 +205,7 @@ pub fn get_simple_image_list_within_custom_div_tag_with_style(photos: &Vec<Arc<B
         if large_rep.is_some() {
             if use_slideshow_url {
                 final_html.push_str(&format!(r#" <a target="_blank" href="{}gotoIndex={}">"#, slide_show_url, index));
-                final_html.push_str("\n");
+                final_html.push('\n');
             }
         }
 
@@ -359,7 +359,7 @@ pub fn get_dates_photos_content_html(photo_results: &PhotoResults, date_params: 
                                                                                 thumbnail_repr.aspect_ratio);
 
             final_html.push_str(&format!(r#"<div class="gallery_item" style="{}\">"#, style_string));
-            final_html.push_str("\n");
+            final_html.push('\n');
 
             let large_repr = photo_item.representations.get_first_representation_matching_criteria_min_dimension(1000, true).unwrap();
             if use_slideshow_url {
@@ -426,7 +426,7 @@ pub fn get_dates_photos_content_html(photo_results: &PhotoResults, date_params: 
                                                                                     thumbnail_repr.aspect_ratio);
 
                 final_html.push_str(&format!(r#"<div class="gallery_item" style="{}\">"#, style_string));
-                final_html.push_str("\n");
+                final_html.push('\n');
 
                 let large_repr = photo_item.representations.get_first_representation_matching_criteria_min_dimension(1000, true).unwrap();
                 if use_slideshow_url {

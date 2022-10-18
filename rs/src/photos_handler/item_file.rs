@@ -67,7 +67,7 @@ impl ItemFile {
                             value_items: Vec::with_capacity(0), item_indices: Vec::with_capacity(0) }
     }
 
-    pub fn load_file(&mut self, file_path: &String) -> bool {
+    pub fn load_file(&mut self, file_path: &str) -> bool {
 
         let file = std::fs::File::open(file_path).unwrap();
         let reader = BufReader::new(file);
@@ -165,7 +165,7 @@ impl ItemFile {
         // add any remaining item...
         if have_new_item {
             let item_index = self.value_items.len();
-            self.value_items.push(temp_item.clone());
+            self.value_items.push(temp_item);
             self.item_indices.push(item_index as u32);
         }
 

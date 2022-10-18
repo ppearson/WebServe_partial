@@ -605,10 +605,9 @@ bool SocketLayerS2N::configure(const Configuration& configuration)
 		m_logger.info("Configured S2N for HTTPS use.");
 		return true;
 	}
-#else
-	return false;
 #endif
-	
+
+	return false;	
 }
 
 SocketLayerThreadContext* SocketLayerS2N::allocatePerThreadContext()

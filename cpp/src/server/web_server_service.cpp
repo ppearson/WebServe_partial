@@ -321,7 +321,7 @@ void WebServerService::start()
 	
 #if WEBSERVE_ENABLE_HTTPS_SUPPORT
 	// assumption here is only the secure socket layer will need this, which might need to be revisited...
-	bool createSocketLayerPerThreadContexts = m_pSecureSocketLayer->supportsPerThreadContext();
+	bool createSocketLayerPerThreadContexts = m_pSecureSocketLayer && m_pSecureSocketLayer->supportsPerThreadContext();
 #else
 	bool createSocketLayerPerThreadContext = false;
 #endif

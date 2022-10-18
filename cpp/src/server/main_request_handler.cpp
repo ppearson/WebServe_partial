@@ -39,7 +39,8 @@ MainRequestHandler::MainRequestHandler() :
 	m_hostnamePortRewriteRequiredForHTTPSRedirect(false),
 	m_photosType(eSSOff), // Note: this doesn't match the default of Configuration.
 	m_haveDirSubRequestHandlers(false),
-	m_haveHostSubRequestHandlers(false)
+	m_haveHostSubRequestHandlers(false),
+	m_fallbackHandler(nullptr)
 {
 
 }
@@ -55,6 +56,12 @@ MainRequestHandler::~MainRequestHandler()
 	
 	m_dirHandlerLookup.clear();
 	m_hostHandlerLookup.clear();
+
+	if (m_fallbackHandler)
+	{
+		delete m_fallbackHandler;
+		m_fallbackHandler = nullptr;
+	}
 }
 
 void MainRequestHandler::configure(const Configuration& configuration, Logger& logger)
@@ -290,6 +297,11 @@ void MainRequestHandler::handleRequest(RequestConnection& requestConnection)
 				}
 			}
 		}
+
+		if (m_fallbackHandler && !handleRequestResult.wasHandled)
+		{
+			handleRequestResult = m_fallbackHandler->handleRequest(requestConnection, newRequest, requestPath);
+		}
 		
 		if (handleRequestResult.accessFailure && m_accessControlEnabled)
 		{
@@ -452,6 +464,19 @@ bool MainRequestHandler::configureSubRequestHandlers(const Configuration& config
 				m_aSubRequestHandlers.emplace_back(pNewRequestHandler);
 				
 				m_haveHostSubRequestHandlers = true;
+			}
+			else if (siteDefConfigType == "*")
+			{
+				// it's a wildcard fallback
+
+				if (m_fallbackHandler)
+				{
+					logger.error("A wildcard fallback handler already exists.");
+				}
+				else
+				{
+					m_fallbackHandler = pNewRequestHandler;
+				}
 			}
 			else
 			{

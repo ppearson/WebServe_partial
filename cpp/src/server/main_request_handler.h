@@ -72,6 +72,9 @@ protected:
 	
 	bool						m_haveHostSubRequestHandlers;
 	SRHandlerMap				m_hostHandlerLookup;
+
+	// Note: this is not stored in the m_aSubRequestHandlers vector
+	SubRequestHandler*			m_fallbackHandler;
 };
 
 #endif // MAIN_REQUEST_HANDLER_H

@@ -82,7 +82,7 @@ impl PhotoResultsDateAccessor {
 
     pub fn build(&mut self, photos: &Vec<Arc<Box<PhotoItem>>>) {
         for photo in photos {
-            if !photo.time_taken.is_some() {
+            if photo.time_taken.is_none() {
                 continue;
             }
 
