@@ -59,7 +59,11 @@ bool ImageReaderAVIF::getImageDetails(const std::string& filePath, bool extractE
 	imageDetails.width = decoder->image->width;
 	imageDetails.height = decoder->image->height;
 
-	//imageDetails.channels = decoder->image->
+	imageDetails.channels = 3;
+	if (decoder->image->alphaPlane)
+	{
+		imageDetails.channels = 4;
+	}
 	imageDetails.pixelBitDepth = decoder->image->depth;
 
 	if (extractEXIF)

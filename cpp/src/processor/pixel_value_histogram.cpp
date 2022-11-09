@@ -49,14 +49,14 @@ unsigned int PixelValueHistogram::countPixelValues(const Image3f* pImage)
 	// TODO: this could be parallelised...
 	for (unsigned int y = 0; y < pImage->getHeight(); y++)
 	{
+		const Colour3f* pPixel = pImage->getRowPtr(y);
 		for (unsigned int x = 0; x < pImage->getWidth(); x++)
 		{
-			// TODO: pointer incr per row to remove indexing?
-			const Colour3f& pixel = pImage->getAt(x, y);
+			addRawValue(pPixel->r);
+			addRawValue(pPixel->g);
+			addRawValue(pPixel->b);
 
-			addRawValue(pixel.r);
-			addRawValue(pixel.g);
-			addRawValue(pixel.b);
+			pPixel++;
 		}
 	}
 

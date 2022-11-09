@@ -79,7 +79,7 @@ public:
 
 	struct ImageDetails
 	{
-		ImageDetails() : width(0), height(0), pixelBitDepth(0), channels(0),
+		ImageDetails() : width(0), height(0), pixelBitDepth(0), floatingPointData(false), channels(0),
 			colourSpace(ColourSpace::eUnknown)
 		{
 		}
@@ -87,15 +87,18 @@ public:
 		enum class ColourSpace {
 			eUnknown,
 			eSRGB,
-			eAdobeRGB
+			eAdobeRGB,
+			eCustomProfile
 		};
 
 		unsigned int	width;
 		unsigned int	height;
 
 		unsigned int	pixelBitDepth;
+		bool			floatingPointData;
 
 		unsigned int	channels;
+
 
 		ColourSpace		colourSpace;
 

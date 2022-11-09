@@ -40,7 +40,7 @@ public:
 	// this can make paths relative by removing a prefix part
 	static bool removePrefixFromPath(std::string& path, const std::string& prefixPath);
 
-	static bool getFilesInDirectory(const std::string& directoryPath, const std::string& extension, std::vector<std::string>& files);
+	static bool getFilesInDirectory(const std::string& directoryPath, const std::string& extension, std::vector<std::string>& files, bool recursive = false);
 
 	static bool getRelativeFilesInDirectoryRecursive(const std::string& searchDirectoryPath, const std::string& relativeDirectoryPath,
 													 const std::string& extension, std::vector<std::string>& files);

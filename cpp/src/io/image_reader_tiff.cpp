@@ -145,6 +145,10 @@ bool ImageReaderTIFF::getImageDetails(const std::string& filePath, bool extractE
 	imageDetails.height = tiffInfo.imageHeight;
 
 	imageDetails.pixelBitDepth = tiffInfo.bitDepth;
+	if (tiffInfo.bitDepth == 32)
+	{
+		imageDetails.floatingPointData = true;
+	}
 	imageDetails.channels = tiffInfo.channelCount;
 
 	imageDetails.colourSpace = tiffInfo.colourSpace;

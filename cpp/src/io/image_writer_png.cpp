@@ -42,8 +42,18 @@ bool ImageWriterPNG::writeImage(const std::string& filePath, const Image3f& imag
 	
 	png_structp pPNG;
 	png_infop pInfo;
-	
+
 	bool save16Bit = false;
+	if (writeParams.bitDepth == eBitDepth_16)
+	{
+		save16Bit = true;
+	}
+	else if (writeParams.bitDepth == eBitDepth_10 || writeParams.bitDepth == eBitDepth_12 || writeParams.bitDepth == eBitDepth_14)
+	{
+		save16Bit = true;
+		fprintf(stderr, "Warning: An unsupport bitdepth was request for writing to PNG: %u bits, but as it is > 8, WebServe process will automatically write a 16-bit PNG.\n",
+				writeParams.getRawBitDepth());
+	}
 
 	png_byte colourType = PNG_COLOR_TYPE_RGB;
 	png_byte bitDepth = save16Bit ? 16 : 8;
@@ -90,6 +100,9 @@ bool ImageWriterPNG::writeImage(const std::string& filePath, const Image3f& imag
 	png_set_IHDR(pPNG, pInfo, width, height, bitDepth, colourType, PNG_INTERLACE_NONE,
 				 PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
 
+	// TODO: again, making an assumption here... might want to support other things, with full ICC profile info in the future...
+	png_set_sRGB(pPNG, pInfo, PNG_sRGB_INTENT_PERCEPTUAL);
+
 	png_write_info(pPNG, pInfo);
 	
 	size_t pixelBytes = save16Bit ? 2 : 1;
@@ -109,13 +122,14 @@ bool ImageWriterPNG::writeImage(const std::string& filePath, const Image3f& imag
 			uint16_t* typedRow = (uint16_t*)row;
 			for (unsigned int x = 0; x < width; x++)
 			{
+				// TODO: again, making an assumption here... might want to support other things, with full ICC profile info in the future...
 				float r = ColourSpace::convertLinearToSRGBAccurate(pRow->r);
 				float g = ColourSpace::convertLinearToSRGBAccurate(pRow->g);
 				float b = ColourSpace::convertLinearToSRGBAccurate(pRow->b);
 
-				uint16_t red = MathsHelpers::clamp(r) * 65535;
-				uint16_t green = MathsHelpers::clamp(g) * 65535;
-				uint16_t blue = MathsHelpers::clamp(b) * 65535;
+				uint16_t red = (uint16_t)(MathsHelpers::clamp(r) * 65535.0f);
+				uint16_t green = (uint16_t)(MathsHelpers::clamp(g) * 65535.0f);
+				uint16_t blue = (uint16_t)(MathsHelpers::clamp(b) * 65535.0f);
 
 				// TODO: this reversing should only be done on marchs which need it...
 				*typedRow++ = reverseUInt16Bytes(red);
@@ -129,13 +143,14 @@ bool ImageWriterPNG::writeImage(const std::string& filePath, const Image3f& imag
 		{
 			for (unsigned int x = 0; x < width; x++)
 			{
+				// TODO: again, making an assumption here... might want to support other things, with full ICC profile info in the future...
 				float r = ColourSpace::convertLinearToSRGBAccurate(pRow->r);
 				float g = ColourSpace::convertLinearToSRGBAccurate(pRow->g);
 				float b = ColourSpace::convertLinearToSRGBAccurate(pRow->b);
 
-				unsigned char red = MathsHelpers::clamp(r) * 255;
-				unsigned char green = MathsHelpers::clamp(g) * 255;
-				unsigned char blue = MathsHelpers::clamp(b) * 255;
+				unsigned char red = (unsigned char)(MathsHelpers::clamp(r) * 255.0f);
+				unsigned char green = (unsigned char)(MathsHelpers::clamp(g) * 255.0f);
+				unsigned char blue = (unsigned char)(MathsHelpers::clamp(b) * 255.0f);
 
 				*row++ = red;
 				*row++ = green;
@@ -176,7 +191,7 @@ bool ImageWriterPNG::writeRawImageCopy(const std::string& originalFilePath, cons
 
 	
 	
-	return true;
+	return false;
 }
 
 

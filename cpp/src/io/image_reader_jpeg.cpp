@@ -236,6 +236,9 @@ Image3f* ImageReaderJPEG::readColour3fImage(const std::string& filePath) const
 
 	unsigned char* pScanlineBuffer;
 
+	// Note: obviously making a big assumption about the colourspace being sRGB...
+	//       others (like AdobeRGB) could be used as well, but...
+
 	for (unsigned int i = 0; i < height; i++)
 	{
 		pScanlineBuffer = pScanlines[i];

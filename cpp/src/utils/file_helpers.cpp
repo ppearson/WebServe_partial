@@ -110,7 +110,7 @@ bool FileHelpers::removePrefixFromPath(std::string& path, const std::string& pre
 	return false;
 }
 
-bool FileHelpers::getFilesInDirectory(const std::string& directoryPath, const std::string& extension, std::vector<std::string>& files)
+bool FileHelpers::getFilesInDirectory(const std::string& directoryPath, const std::string& extension, std::vector<std::string>& files, bool recursive)
 {
 	// Note: opendir() is used on purpose here, as scandir() and lsstat() don't reliably support S_ISLNK on symlinks over NFS,
 	//       whereas opendir() allows this
@@ -123,9 +123,23 @@ bool FileHelpers::getFilesInDirectory(const std::string& directoryPath, const st
 
 	while ((dirEnt = readdir(dir)) != nullptr)
 	{
-		// ignore directories for the moment
 		if (dirEnt->d_type == DT_DIR)
-			continue;
+		{
+			if (!recursive)
+			{
+				continue;
+			}
+
+			if (std::strcmp(dirEnt->d_name, ".") == 0 || std::strcmp(dirEnt->d_name, "..") == 0)
+			{
+				continue;
+			}
+
+			// otherwise, recurse...
+			std::string subDirPath = combinePaths(directoryPath, dirEnt->d_name);
+			// TODO: recursion depth limit?
+			getFilesInDirectory(subDirPath, extension, files, true);
+		}
 
 		// cope with symlinks by working out what they point at
 		if (dirEnt->d_type == DT_LNK)

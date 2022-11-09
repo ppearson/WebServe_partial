@@ -33,16 +33,11 @@ class ImageWriter
 public:
 	ImageWriter()
 	{
-
 	}
 
 	virtual ~ImageWriter()
 	{
-
 	}
-
-	// this is somewhat imperfect, as currently these params are
-	// jpeg-specific, but in theory other formats might use something similar, so...
 
 	enum ChromaSubSamplingType
 	{
@@ -56,6 +51,7 @@ public:
 		eBitDepth_8,
 		eBitDepth_10,
 		eBitDepth_12,
+		eBitDepth_14,
 		eBitDepth_16,
 		eBitDepth_32
 	};
@@ -71,12 +67,8 @@ public:
 
 		BitDepth				bitDepth				= eBitDepth_8;
 
-		// for jpeg
 		float					quality					= 0.96f;
 		ChromaSubSamplingType	chromaSubSamplingType	= eChromaSS_444;
-		
-		// for png
-		bool					bitDepth16				= false;
 
 
 		uint32_t getRawBitDepth() const
@@ -86,6 +78,7 @@ public:
 				case eBitDepth_8:  return 8;
 				case eBitDepth_10: return 10;
 				case eBitDepth_12: return 12;
+				case eBitDepth_14: return 14;
 				case eBitDepth_16: return 16;
 				case eBitDepth_32: return 32;
 			}

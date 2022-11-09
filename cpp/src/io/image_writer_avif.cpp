@@ -49,7 +49,7 @@ bool ImageWriterAVIF::writeImage(const std::string& filePath, const Image3f& ima
 		pixelFormatChromaSubsampling = AVIF_PIXEL_FORMAT_YUV422;
 	}
 
-	avifImage* newImage = avifImageCreate(width, height, rawBitDepth, pixelFormatChromaSubsampling);
+	avifImage* newImage = avifImageCreate((int)width, (int)height, rawBitDepth, pixelFormatChromaSubsampling);
 
 	avifRGBImageSetDefaults(&rgb, newImage);
 
@@ -59,7 +59,7 @@ bool ImageWriterAVIF::writeImage(const std::string& filePath, const Image3f& ima
 
 	if (rawBitDepth == 8)
 	{
-		static constexpr uint8_t kByteMult = 255;
+		static constexpr float kByteMult = 255.0f;
 		for (unsigned int y = 0; y < height; y++)
 		{
 			// need to flip the height round...
@@ -74,9 +74,9 @@ bool ImageWriterAVIF::writeImage(const std::string& filePath, const Image3f& ima
 				float g = ColourSpace::convertLinearToSRGBAccurate(pRow->g);
 				float b = ColourSpace::convertLinearToSRGBAccurate(pRow->b);
 
-				uint8_t red = MathsHelpers::clamp(r) * kByteMult;
-				uint8_t green = MathsHelpers::clamp(g) * kByteMult;
-				uint8_t blue = MathsHelpers::clamp(b) * kByteMult;
+				uint8_t red = (uint8_t)(MathsHelpers::clamp(r) * kByteMult);
+				uint8_t green = (uint8_t)(MathsHelpers::clamp(g) * kByteMult);
+				uint8_t blue = (uint8_t)(MathsHelpers::clamp(b) * kByteMult);
 
 				*pDstPixel++ = red;
 				*pDstPixel++ = green;
@@ -92,6 +92,7 @@ bool ImageWriterAVIF::writeImage(const std::string& filePath, const Image3f& ima
 		// that for us, so we need to scale the values appropriately for the bit depth required.
 
 		const uint16_t kByteMult = 1 << rawBitDepth;
+		const float kByteMultFloat = (float)kByteMult;
 		for (unsigned int y = 0; y < height; y++)
 		{
 			// need to flip the height round...
@@ -106,9 +107,9 @@ bool ImageWriterAVIF::writeImage(const std::string& filePath, const Image3f& ima
 				float g = ColourSpace::convertLinearToSRGBAccurate(pRow->g);
 				float b = ColourSpace::convertLinearToSRGBAccurate(pRow->b);
 
-				uint16_t red = MathsHelpers::clamp(r) * kByteMult;
-				uint16_t green = MathsHelpers::clamp(g) * kByteMult;
-				uint16_t blue = MathsHelpers::clamp(b) * kByteMult;
+				uint16_t red = (uint16_t)(MathsHelpers::clamp(r) * kByteMultFloat);
+				uint16_t green = (uint16_t)(MathsHelpers::clamp(g) * kByteMultFloat);
+				uint16_t blue = (uint16_t)(MathsHelpers::clamp(b) * kByteMultFloat);
 
 				*pDstPixel++ = red;
 				*pDstPixel++ = green;

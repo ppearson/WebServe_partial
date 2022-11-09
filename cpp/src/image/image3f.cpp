@@ -18,6 +18,8 @@
 
 #include "image3f.h"
 
+#include <memory.h>
+
 Image3f::Image3f()
 {
 
@@ -76,4 +78,41 @@ Colour3f& Image3f::getAtClamped(unsigned int x, unsigned int y)
 
 	unsigned int index = (y * m_width) + x;
 	return m_aPixelData[index];
+}
+
+void Image3f::flipImageVertically()
+{
+	Colour3f* pTempScanline = new Colour3f[m_width];
+
+	unsigned int scanlines = m_height;
+
+	unsigned int scanlineBytes = m_width * sizeof(Colour3f);
+
+	// only need to do half of them, as we're swapping top and bottom
+	unsigned int numRows = scanlines / 2;
+
+	unsigned int targetScanline = scanlines - 1;
+
+	for (unsigned int i = 0; i < numRows; i++)
+	{
+		Colour3f* pSrc = getRowPtr(i);
+
+		memcpy(pTempScanline, pSrc, scanlineBytes);
+
+		Colour3f* pDst = getRowPtr(targetScanline);
+
+		// copy bottom to top
+		memcpy(pSrc, pDst, scanlineBytes);
+
+		// copy temp to bottom
+		memcpy(pDst, pTempScanline, scanlineBytes);
+
+		targetScanline --;
+	}
+
+	if (pTempScanline)
+	{
+		delete [] pTempScanline;
+		pTempScanline = nullptr;
+	}
 }

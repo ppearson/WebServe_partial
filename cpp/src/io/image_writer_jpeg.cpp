@@ -3,7 +3,7 @@
  Copyright 2018-2022 Peter Pearson.
  Originally taken from:
  Imagine
- Copyright 2018-2022 Peter Pearson.
+ Copyright 2011-2014 Peter Pearson.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  You may not use this file except in compliance with the License.
@@ -126,13 +126,16 @@ bool ImageWriterJPEG::writeImage(const std::string& filePath, const Image3f& ima
 
 		for (unsigned int x = 0; x < width; x++)
 		{
+			// TODO: bit of an assumption here, we could also support AdobeRGB,
+			//       but we'd need to faff about creating EXIF metadata to do that robustly (in terms of user apps / browsers
+			//       correctly handling it)...
 			float r = ColourSpace::convertLinearToSRGBAccurate(pRow->r);
 			float g = ColourSpace::convertLinearToSRGBAccurate(pRow->g);
 			float b = ColourSpace::convertLinearToSRGBAccurate(pRow->b);
 
-			unsigned char red = MathsHelpers::clamp(r) * 255;
-			unsigned char green = MathsHelpers::clamp(g) * 255;
-			unsigned char blue = MathsHelpers::clamp(b) * 255;
+			unsigned char red = (unsigned char)(MathsHelpers::clamp(r) * 255.0f);
+			unsigned char green = (unsigned char)(MathsHelpers::clamp(g) * 255.0f);
+			unsigned char blue = (unsigned char)(MathsHelpers::clamp(b) * 255.0f);
 
 			*pTempScanline++ = red;
 			*pTempScanline++ = green;
