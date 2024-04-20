@@ -1,6 +1,6 @@
 /*
  WebServe (Rust port)
- Copyright 2021 Peter Pearson.
+ Copyright 2021-2024 Peter Pearson.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  You may not use this file except in compliance with the License.
@@ -50,7 +50,7 @@ impl fmt::Display for SiteConfig {
 impl SiteConfig {
 
     pub fn has_param(&self, param: &str) -> bool {
-        return self.params.contains_key(param);
+        self.params.contains_key(param)
     }
 
     pub fn get_param(&self, param: &str) -> String {
@@ -60,7 +60,7 @@ impl SiteConfig {
             ret_value = self.params.get(param).unwrap().clone();
         }
 
-        return ret_value;
+        ret_value
     }
 
     pub fn get_param_as_bool(&self, param: &str, default: bool) -> bool {
@@ -69,10 +69,10 @@ impl SiteConfig {
             None => return default,
             Some(val) => {
                 if val == "1" || val == "true" || val == "yes" {
-                    return true;
+                    true
                 }
                 else {
-                    return false;
+                    false
                 }
             }
         }
@@ -81,10 +81,10 @@ impl SiteConfig {
     pub fn get_param_as_uint(&self, param: &str, default: u32) -> u32 {
         let result = self.params.get(param);
         match result {
-            None => return default,
+            None => default,
             Some(val) => {
                 let uint_value = val.parse::<u32>().unwrap();
-                return uint_value;
+                uint_value
             }
         }
     }
@@ -106,89 +106,30 @@ pub keep_alive_limit:               u32,
 pub site_configs:                   Vec<SiteConfig>
 }
 
+#[cfg(target_os = "macos")]
+const DEFAULT_CONFIG_PATH: &str = "/Users/peter/webserve.ini";
+#[cfg(target_os = "linux")]
+const DEFAULT_CONFIG_PATH: &str = "/home/peter/webserve.ini";
+
 impl Configuration {
     pub fn new() -> Configuration {
-        Configuration{ worker_threads: 8, enable_http: true, port_number_http: 9393,
-                        downgrade_user_after_bind: false, downgrade_username: "".to_string(),
-                        keep_alive_enabled: false, keep_alive_timeout: 6, keep_alive_limit: 20,
+        Configuration{ worker_threads: 8,
+                        enable_http: true,
+                        port_number_http: 9393,
+                        downgrade_user_after_bind: false,
+                        downgrade_username: "".to_string(),
+                        keep_alive_enabled: false,
+                        keep_alive_timeout: 6,
+                        keep_alive_limit: 20,
                         site_configs: Vec::with_capacity(0) }
     }
 
     pub fn auto_load_file(&mut self) -> bool {
-        return self.load_from_file("/home/peter/webserve.ini".to_string());
-    }
-
-    fn get_key_value(string_val: &str, key: &mut String, value: &mut String) -> bool {
-        if !string_val.contains(':') {
-            return false;
-        }
-
-        // this includes the separator, so...
-//        let (key_str, val_str) = string_val.split_at(string_val.find(':').unwrap());
-        let mut split = string_val.split(':');
-        let (key_str, val_str) = (split.next().unwrap(), split.next().unwrap());
-
-        // TODO: can we just do something like this?
-        // key = *key_str.to_owned().to_string();
-
-        key.clear();
-        value.clear();
-
-        key.push_str(key_str.trim());
-        value.push_str(val_str.trim());
-
-        return true;
-    }
-
-    fn get_bool_value_from_string(string_val: &str, bool_val: &mut bool) -> bool {
-        if string_val.is_empty() {
-            return false;
-        }
-
-        // check known strings first
-        if string_val == "true" || string_val == "yes" {
-            *bool_val = true;
-            return true;
-        }
-        else if string_val == "false" || string_val == "no" {
-            *bool_val = false;
-            return true;
-        }
-
-        // otherwise, attempt to see if it's a number value, 0 or 1...
-        let int_value = string_val.parse::<u32>().unwrap();
-        if int_value == 0 {
-            *bool_val = false;
-            return true;
-        }
-        else if int_value == 1 {
-            *bool_val = true;
-            return true;
-        }
-
-        return false;
-    }
-
-    fn try_extract_bool_value(try_key_name: &str, actual_key_name: &str,
-                              key_value: &str, config_field: &mut bool) -> bool {
-        if try_key_name != actual_key_name {
-            return false;
-        }
-
-        let mut extracted_bool_value = false;
-        if Configuration::get_bool_value_from_string(key_value, &mut extracted_bool_value) {
-            *config_field = extracted_bool_value;
-        }
-        else {
-            // Error
-        }
-
-        // return that the key name actually matched, even if we didn't actually successfully apply the config value...
-        return true;
+        self.load_from_file(&DEFAULT_CONFIG_PATH)
     }
 
     // TODO: return Result instead...
-    pub fn load_from_file(&mut self, filename: String) -> bool {
+    pub fn load_from_file(&mut self, filename: &str) -> bool {
         let file = std::fs::File::open(filename).unwrap();
         let reader = BufReader::new(file);
 
@@ -218,44 +159,55 @@ impl Configuration {
 
                 // println!("New Site: {}", name);
 
-                let site_def_start = line.find("site(");
-                let site_def_end = line.find(')');
+                if let Some(site_def_start) = line.find("site(") {
+                    if let Some(site_def_end) = line.find(')') {
+                        if site_def_start < site_def_end {
+                            let site_def_start = site_def_start + 5;
+                            let site_def_contents = line[site_def_start..site_def_end].to_string();
 
-                if site_def_start != None && site_def_end != None &&
-                   site_def_start.unwrap() < site_def_end.unwrap() {
-                    let site_def_start = site_def_start.unwrap() + 5;
-                    let site_def_contents = line[site_def_start..site_def_end.unwrap()].to_string();
-
-                    let (def_type, def_config) = site_def_contents.split_once(',').unwrap();
-                    let def_type = def_type.trim();
-                    let def_config = def_config.trim();
-                    current_site_config.ctype = def_type.to_string();
-                    current_site_config.definition = def_config.to_string();
+                            let (def_type, def_config) = site_def_contents.split_once(',').unwrap();
+                            let def_type = def_type.trim();
+                            let def_config = def_config.trim();
+                            current_site_config.ctype = def_type.to_string();
+                            current_site_config.definition = def_config.to_string();
+                        }
+                        else {
+                            eprintln!("Warning: malformed site definition in config file...");
+                        }
+                    }
+                    else {
+                        eprintln!("Warning: malformed site definition in config file...");
+                    }
                 }
 
+                // skip this line, we're done...
                 continue;
             }
 
             // see if we're setting a param for a site, with a '.' in the initial name, i.e.
 		    // photos.webContentPath: 1
             if line.contains(": ") {
-                let colon_pos = line.find(':');
-                let dot_pos = line.find('.');
-                if colon_pos != None && dot_pos != None && dot_pos < colon_pos {
+                if let Some(colon_pos) = line.find(':') {
+                    if let Some(dot_pos) = line.find('.') {
+                        if dot_pos < colon_pos {
+                            let full_name = line[0..colon_pos].to_string();
 
-                    let full_name = line[0..colon_pos.unwrap()].to_string();
+                            // site it belongs to - for the moment, we'll ignore this and use the last, but
+                            // will need to fix this up in the future.
+                            let _site_name = full_name[0..dot_pos].to_string();
 
-                    // site it belongs to - for the moment, we'll ignore this and use the last, but
-				    // will need to fix this up in the future.
-                    let _site_name = full_name[0..dot_pos.unwrap()].to_string();
+                            let param_name = full_name[dot_pos + 1..].to_string();
 
-                    let param_name = full_name[dot_pos.unwrap()+1..].to_string();
+                            let string_value = line[colon_pos + 1..].to_string();
+                            let string_value = string_value.trim().to_string();
 
-                    let string_value = line[colon_pos.unwrap()+1..].to_string();
-                    let string_value = string_value.trim().to_string();
-
-                    let current_site_config = self.site_configs.last_mut().unwrap();
-                    current_site_config.params.insert(param_name, string_value);
+                            let current_site_config = self.site_configs.last_mut().unwrap();
+                            current_site_config.params.insert(param_name, string_value);
+                        }
+                        else {
+                            eprintln!("Warning: malformed site param definition in config file...");
+                        }
+                    }
                 }
             }
 
@@ -299,6 +251,75 @@ impl Configuration {
             }
         }
 
-        return true;
+        true
+    }
+
+    fn get_key_value(string_val: &str, key: &mut String, value: &mut String) -> bool {
+        if !string_val.contains(':') {
+            return false;
+        }
+
+        // this includes the separator, so...
+//        let (key_str, val_str) = string_val.split_at(string_val.find(':').unwrap());
+        let mut split = string_val.split(':');
+        let (key_str, val_str) = (split.next().unwrap(), split.next().unwrap());
+
+        // TODO: can we just do something like this?
+        // key = *key_str.to_owned().to_string();
+
+        key.clear();
+        value.clear();
+
+        key.push_str(key_str.trim());
+        value.push_str(val_str.trim());
+
+        true
+    }
+
+    fn get_bool_value_from_string(string_val: &str, bool_val: &mut bool) -> bool {
+        if string_val.is_empty() {
+            return false;
+        }
+
+        // check known strings first
+        if string_val == "true" || string_val == "yes" {
+            *bool_val = true;
+            return true;
+        }
+        else if string_val == "false" || string_val == "no" {
+            *bool_val = false;
+            return true;
+        }
+
+        // otherwise, attempt to see if it's a number value, 0 or 1...
+        let int_value = string_val.parse::<u32>().unwrap();
+        if int_value == 0 {
+            *bool_val = false;
+            return true;
+        }
+        else if int_value == 1 {
+            *bool_val = true;
+            return true;
+        }
+
+        false
+    }
+
+    fn try_extract_bool_value(try_key_name: &str, actual_key_name: &str,
+                              key_value: &str, config_field: &mut bool) -> bool {
+        if try_key_name != actual_key_name {
+            return false;
+        }
+
+        let mut extracted_bool_value = false;
+        if Configuration::get_bool_value_from_string(key_value, &mut extracted_bool_value) {
+            *config_field = extracted_bool_value;
+        }
+        else {
+            // Error
+        }
+
+        // return that the key name actually matched, even if we didn't actually successfully apply the config value...
+        true
     }
 }

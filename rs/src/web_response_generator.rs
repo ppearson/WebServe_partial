@@ -1,6 +1,6 @@
 /*
  WebServe (Rust port)
- Copyright 2021 Peter Pearson.
+ Copyright 2021-2024 Peter Pearson.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  You may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
  ---------
 */
 
-use std::path::{Path};
+use std::path::Path;
 use std::fs;
 use std::io::Read;
 use std::io::{BufRead, BufReader};
@@ -45,7 +45,7 @@ impl GetResponseString for WebResponseGeneratorText {
             self.text
         );
 
-        return response;
+        response
     }
 }
 
@@ -126,7 +126,7 @@ impl GetResponseString for WebResponseGeneratorFile {
             contents
         );
 
-        return response;
+        response
     }
 }
 
@@ -142,14 +142,14 @@ impl WebResponseGeneratorTemplateFile {
         let mut wrg = WebResponseGeneratorTemplateFile { template_args: 1, path: path.to_string(),
                                             content: Vec::with_capacity(1) };
         wrg.content.push(content.to_string());
-        return wrg;
+        wrg
     }
 
     // instead of using a full Builder external class, just do this...
     pub fn add_field(mut self, content: &str) -> Self {
         self.content.push(content.to_string());
         self.template_args += 1;
-        return self;
+        self
     }
 }
 
@@ -220,7 +220,7 @@ impl GetResponseString for WebResponseGeneratorTemplateFile {
             contents
         );
 
-        return response;
+        response
     }
 }
 

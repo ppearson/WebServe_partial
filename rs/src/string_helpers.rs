@@ -1,6 +1,6 @@
 /*
  WebServe (Rust port)
- Copyright 2021 Peter Pearson.
+ Copyright 2021-2024 Peter Pearson.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  You may not use this file except in compliance with the License.
@@ -37,7 +37,7 @@ pub fn combine_set_tokens(str1: &str, str2: &str) -> String {
     }
 
     combined_string.push_str(str2);
-    return combined_string;
+    combined_string
 }
 
 pub fn simple_encode_string(input: &str) -> String {
@@ -57,7 +57,7 @@ pub fn simple_encode_string(input: &str) -> String {
         }
     }
 
-    return output_string;
+    output_string
 }
 
 pub fn simple_decode_string(input: &str) -> String {
@@ -76,7 +76,7 @@ pub fn simple_decode_string(input: &str) -> String {
     // replace '+' with spaces
     output_string = output_string.replace('+', " ");
 
-    return output_string;
+    output_string
 }
 
 

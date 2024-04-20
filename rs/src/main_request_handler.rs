@@ -1,6 +1,6 @@
 /*
  WebServe (Rust port)
- Copyright 2021 Peter Pearson.
+ Copyright 2021-2024 Peter Pearson.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  You may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ use std::io::prelude::*;
 
 use std::collections::HashMap;
 
-use std::time::{Duration};
+use std::time::Duration;
 
 pub struct MainRequestHandler {
     sub_request_handlers:       Vec<Box<dyn SubRequestHandler + Send + Sync> >,
@@ -57,7 +57,7 @@ impl MainRequestHandler {
                                           fallback_handler: None };
         mrh.configure_sub_request_handlers(config);
 
-        return mrh;
+        mrh
     }
 
     fn configure_sub_request_handlers(&mut self, config: &Configuration) {
@@ -65,12 +65,12 @@ impl MainRequestHandler {
         for site_config in &config.site_configs {
             if site_config.ctype == "files" {
                 let mut new_handler = FileRequestHandler::new();
-                new_handler.configure(&site_config, config);
+                new_handler.configure(site_config, config);
                 self.sub_request_handlers.push(Box::new(new_handler));
             }
             else if site_config.ctype == "photos" {
                 let mut new_handler = PhotosRequestHandler::new();
-                new_handler.configure(&site_config, config);
+                new_handler.configure(site_config, config);
                 self.sub_request_handlers.push(Box::new(new_handler));
             }
             else {
@@ -78,17 +78,29 @@ impl MainRequestHandler {
                 continue;
             }
 
-            let (def_type, def_value) = site_config.definition.split_once(':').unwrap();
-            if def_type == "dir" {
-                self.have_dir_sub_request_handlers = true;
-                self.dir_handler_lookups.insert(def_value.to_string(), count);
+            if let Some((def_type, def_value)) = site_config.definition.split_once(':') {
+                if def_type == "dir" {
+                    self.have_dir_sub_request_handlers = true;
+                    self.dir_handler_lookups.insert(def_value.to_string(), count);
+                }
+                else if def_type == "host" {
+                    self.have_host_sub_request_handlers = true;
+                    self.host_handler_lookups.insert(def_value.to_string(), count);
+                }
+                else if def_type == "*" {
+                    // it's a wildcard fallback
+                    if self.fallback_handler.is_some() {
+                        eprintln!("Error: A fallback handler exists already.");
+                        continue;
+                    }
+                    self.fallback_handler = Some(count);
+                }
+                else {
+                    eprintln!("Invalid site config definition type: '{}'", def_type);
+                }
             }
-            else if def_type == "host" {
-                self.have_host_sub_request_handlers = true;
-                self.host_handler_lookups.insert(def_value.to_string(), count);
-            }
-            else if def_type == "*" {
-                // it's a wildcard fallback
+            else if site_config.definition == "*" {
+                // allow a single fallback type without a config value (i.e. no ':' char in the string)
                 if self.fallback_handler.is_some() {
                     eprintln!("Error: A fallback handler exists already.");
                     continue;
@@ -130,7 +142,7 @@ impl MainRequestHandler {
                 return;
             }
 
-            should_keep_alive_next_time = self.configuration.keep_alive_enabled && web_request.connection_type == ConnectionType::ConnectionKeepAlive;
+            should_keep_alive_next_time = should_keep_alive_next_time && web_request.connection_type == ConnectionType::ConnectionKeepAlive;
 
             // knock the leading slash off so everything' relative to our root...
             let request_path = web_request.path[1..].to_string();
@@ -176,7 +188,7 @@ impl MainRequestHandler {
             }
 
             if !handle_request_result.was_handled() {
-                if request_path != "favicon.ico" && request_path != "" {
+                if request_path != "favicon.ico" && !request_path.is_empty() {
                     println!("Unknown handler for: '{}'", request_path);
                 }
     

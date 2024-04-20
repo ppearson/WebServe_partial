@@ -1,6 +1,6 @@
 /*
  WebServe (Rust port)
- Copyright 2021 Peter Pearson.
+ Copyright 2021-2024 Peter Pearson.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  You may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ use crate::web_response_generator::{GetResponseString, WebResponseGeneratorFile}
 use crate::web_server_common::RequestConnection;
 
 use std::io::prelude::*;
-use std::path::{Path};
+use std::path::Path;
 
 pub struct FileRequestHandler {
     base_path:                  String,
@@ -38,14 +38,14 @@ impl FileRequestHandler {
 
 impl SubRequestHandler for FileRequestHandler {
     fn configure(&mut self, site_config: &SiteConfig, _config: &Configuration) -> bool {
-        self.base_path = site_config.get_param(&"basePath".to_string());
+        self.base_path = site_config.get_param("basePath");
         
-        return self.base_path.len() > 0
+        !self.base_path.is_empty()
     }
 
     fn handle_request(&self, connection: &RequestConnection, _request: &WebRequest, remaining_uri: &str) -> HandleRequestResult {
         let base_path = Path::new(&self.base_path);
-        let target_path = base_path.join(&remaining_uri).to_str().unwrap().to_string();
+        let target_path = base_path.join(remaining_uri).to_str().unwrap().to_string();
 
         let wrg = WebResponseGeneratorFile::new(target_path);
 
@@ -56,6 +56,6 @@ impl SubRequestHandler for FileRequestHandler {
         stream.write(response.as_bytes()).unwrap();
         stream.flush().unwrap();
 
-        return HandleRequestResult::RequestHandledOK;
+        HandleRequestResult::RequestHandledOK
     }
 }

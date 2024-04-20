@@ -26,6 +26,9 @@
 #include <inttypes.h>
 #include <algorithm>
 
+class DataConversionHelpers
+{
+public:
 
 // TODO: these can be templatised, and we should probably make them be specialised
 //       "toLittleEndian" type things which are platform dependent...
@@ -74,6 +77,8 @@ inline static uint16_t reverseUInt16Bytes(uint16_t value)
 	
 	return finalValue;
 }
+
+};
 
 #endif // DATA_CONVERSION_H
 

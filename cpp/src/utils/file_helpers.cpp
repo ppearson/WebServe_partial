@@ -20,6 +20,7 @@
 
 #include <cstdio>
 #include <cstring>
+#include <ctime>
 
 #include <sys/stat.h>
 #include <dirent.h>
@@ -321,4 +322,20 @@ std::string FileHelpers::getFileTextContent(const std::string& filePath)
 	fclose(pFile);
 
 	return fileContent;
+}
+
+// this is currently formatted in the same format as EXIF dates are
+std::string FileHelpers::getFileModifiedDate(const std::string& filePath)
+{
+	struct stat attrib;
+	if (stat(filePath.c_str(), &attrib) != 0)
+	{
+		// something went wrong
+		return "";
+	}
+
+	char date[32];
+	strftime(date, 20, "%Y:%m:%d %H:%M:%S", localtime(&(attrib.st_mtime)));
+
+	return std::string(date);
 }

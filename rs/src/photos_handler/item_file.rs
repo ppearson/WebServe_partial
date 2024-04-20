@@ -1,6 +1,6 @@
 /*
  WebServe (Rust port)
- Copyright 2021 Peter Pearson.
+ Copyright 2021-2024 Peter Pearson.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  You may not use this file except in compliance with the License.
@@ -32,11 +32,11 @@ pub struct Item {
 
 impl Item {
     pub fn new() -> Item {
-        return Item { values: BTreeMap::new() };
+        Item { values: BTreeMap::new() }
     }
 
     pub fn has_value(&self, key: &str) -> bool {
-        return self.values.contains_key(key);
+        self.values.contains_key(key)
     }
 
     pub fn get_value(&self, key: &str) -> String {
@@ -82,7 +82,7 @@ impl ItemFile {
             let line = line.unwrap();
 
             // ignore empty lines and comments
-            if line.len() == 0 || line.starts_with('#') {
+            if line.is_empty() || line.starts_with('#') {
                 continue;
             }
 
@@ -169,7 +169,7 @@ impl ItemFile {
             self.item_indices.push(item_index as u32);
         }
 
-        return true;
+        true
     }
 
     pub fn get_final_baked_items(&self) -> Vec<Item> {
@@ -217,7 +217,7 @@ impl ItemFile {
             }
         }
 
-        return final_items;
+        final_items
     }
 }
 
@@ -226,9 +226,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_Item1() {
+    fn test_item1() {
         
-        let mut item = Item::new();
+        //let mut item = Item::new();
     //    item.values.insert("basePath", "/home/test1/");
        
       //  assert_eq!(resp_string, expected_response_string);

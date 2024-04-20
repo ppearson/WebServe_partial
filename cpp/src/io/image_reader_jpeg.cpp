@@ -78,7 +78,7 @@ bool ImageReaderJPEG::getImageDetails(const std::string& filePath, bool extractE
 	imageDetails.width = (unsigned int)cinfo.output_width;
 	imageDetails.height = (unsigned int)cinfo.output_height;
 
-	imageDetails.channels = 3;
+	imageDetails.channels = cinfo.output_components;
 
 	// technically, libjpeg can sort of support 12-bit depth as well,
 	// but it's *very* rare (single-channel 12-bit is occasionally used)
@@ -190,7 +190,13 @@ Image3f* ImageReaderJPEG::readColour3fImage(const std::string& filePath) const
 		return nullptr;
 	}
 
-	int depth = cinfo.output_components;
+	int channels = cinfo.output_components;
+
+	if (channels != 1 && channels != 3)
+	{
+		fprintf(stderr, "Error: %u-channel JPEG images cannot be read currently.\n", channels);
+		return nullptr;
+	}
 
 	unsigned int width = cinfo.output_width;
 	unsigned int height = cinfo.output_height;
@@ -223,7 +229,7 @@ Image3f* ImageReaderJPEG::readColour3fImage(const std::string& filePath) const
 	for (unsigned int i = 0; i < height; i++)
 	{
 		// TODO: this could fail too...
-		pScanlines[i] = new unsigned char[width * depth];
+		pScanlines[i] = new unsigned char[width * channels];
 	}
 
 	unsigned int linesRead = 0;
@@ -247,7 +253,23 @@ Image3f* ImageReaderJPEG::readColour3fImage(const std::string& filePath) const
 
 		Colour3f* pImageRow = pImage3f->getRowPtr(y);
 
-		if (depth == 3)
+		if (channels == 1)
+		{
+			for (unsigned int x = 0; x < width; x++)
+			{
+				unsigned char red = *pScanlineBuffer++;
+
+				// Note: I'm not sure if this is correct - maybe we just want to * 255 and not do the colourspace
+				//       conversion, but for some NASA images that are single channel, it produces apparently the correct result, so..
+				// TODO: maybe we can use any colourspace info in header?
+				pImageRow->r = ColourSpace::convertSRGBToLinearLUT(red);
+				pImageRow->g = pImageRow->r;
+				pImageRow->b = pImageRow->r;
+
+				pImageRow++;
+			}
+		}
+		else if (channels == 3)
 		{
 			for (unsigned int x = 0; x < width; x++)
 			{

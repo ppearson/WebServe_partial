@@ -1,6 +1,6 @@
 /*
  WebServe (Rust port)
- Copyright 2021 Peter Pearson.
+ Copyright 2021-2024 Peter Pearson.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  You may not use this file except in compliance with the License.
@@ -20,9 +20,9 @@ use std::sync::Arc;
 use std::sync::RwLock;
 use std::sync::atomic::{AtomicBool, Ordering};
 
-use super::photo_item::{PhotoItem};
-use super::photo_results_date_accessor::{PhotoResultsDateAccessor};
-use super::photo_results_location_accessor::{PhotoResultsLocationAccessor};
+use super::photo_item::PhotoItem;
+use super::photo_results_date_accessor::PhotoResultsDateAccessor;
+use super::photo_results_location_accessor::PhotoResultsLocationAccessor;
 
 #[derive(Debug)]
 pub struct PhotoResults {

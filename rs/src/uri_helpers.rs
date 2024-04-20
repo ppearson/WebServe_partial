@@ -1,6 +1,6 @@
 /*
  WebServe (Rust port)
- Copyright 2021 Peter Pearson.
+ Copyright 2021-2024 Peter Pearson.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  You may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 pub fn split_first_level_directory_and_remainder(url: &str, directory: &mut String, remainder: &mut String) -> bool {
 
     let split_pos = url.find('/');
-    if split_pos == None {
+    if split_pos.is_none() {
         return false;
     }
 
@@ -31,7 +31,7 @@ pub fn split_first_level_directory_and_remainder(url: &str, directory: &mut Stri
     *directory = dir_part.to_string();
     *remainder = remainder_part.to_string();
 
-    return true;
+    true
 }
 
 

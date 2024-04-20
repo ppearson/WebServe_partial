@@ -51,6 +51,8 @@ public:
 	static bool createDirectory(const std::string& dirPath);
 	
 	static std::string getFileTextContent(const std::string& filePath);
+
+	static std::string getFileModifiedDate(const std::string& filePath);
 };
 
 #endif // FILE_HELPERS_H

@@ -1,6 +1,6 @@
 /*
  WebServe (Rust port)
- Copyright 2021 Peter Pearson.
+ Copyright 2021-2024 Peter Pearson.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  You may not use this file except in compliance with the License.
@@ -21,14 +21,14 @@
 
 pub fn remove_prefix_from_path(path: &mut String, prefix_path: &str) -> bool {
     // TOOD: can this be optimised?
-    if path[0..prefix_path.len()].to_string() == *prefix_path {
+    if path[0..prefix_path.len()] == *prefix_path {
         // the path begins with the prefix, so just remove it...
         let new_path = path[prefix_path.len()..].to_string();
         *path = new_path;
         return true;
     }
 
-    return false;
+    false
 }
 
 pub fn combine_paths(path0: &str, path1: &str) -> String {
@@ -43,7 +43,7 @@ pub fn combine_paths(path0: &str, path1: &str) -> String {
 
     final_path.push_str(path1);
 
-    return final_path;
+    final_path
 }
 
 #[cfg(test)]

@@ -1,6 +1,6 @@
 /*
  WebServe (Rust port)
- Copyright 2021 Peter Pearson.
+ Copyright 2021-2024 Peter Pearson.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  You may not use this file except in compliance with the License.
@@ -31,13 +31,25 @@ mod web_server_common;
 mod web_server_service;
 mod uri_helpers;
 
+use std::env;
+
 use web_server_service::WebServerService;
 
 fn main() {
+    let args: Vec<String> = env::args().collect();
+
     let mut config = configuration::Configuration::new();
-    config.auto_load_file();
+
+    if args.len() == 3 {
+        if args[1] == "--config" {
+            let config_file = &args[2];
+            config.load_from_file(&config_file);
+        }
+    }
+    else {
+        config.auto_load_file();
+    }
 
     let web_server_service = WebServerService::init(&config);
-
     web_server_service.run();
 }

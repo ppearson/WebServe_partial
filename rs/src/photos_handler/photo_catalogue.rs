@@ -1,6 +1,6 @@
 /*
  WebServe (Rust port)
- Copyright 2021 Peter Pearson.
+ Copyright 2021-2024 Peter Pearson.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  You may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 */
 
 
-use std::path::{Path};
+use std::path::Path;
 
 use std::sync::Arc;
 //use std::sync::Mutex;
@@ -30,8 +30,8 @@ use exif::{In, Reader, Tag};
 use crate::file_helpers::*;
 
 use super::item_file::{Item, ItemFile};
-use super::photo_representations::{PhotoRep};
-use super::photo_query_engine::{PhotoQueryEngine};
+use super::photo_representations::PhotoRep;
+use super::photo_query_engine::PhotoQueryEngine;
 use super::photo_item::{*};
 
 pub struct PhotoCatalogue {
@@ -80,7 +80,7 @@ impl PhotoCatalogue {
 
             let mut item_file = ItemFile::new();
 
-            if !item_file.load_file(&item_file_path) {
+            if !item_file.load_file(item_file_path) {
                 println!("Couldn't load item file: {}...", item_file_path);
                 continue;
             }
@@ -90,8 +90,8 @@ impl PhotoCatalogue {
             let final_items = item_file.get_final_baked_items();
 
             for item in &final_items {
-                self.process_item_file_item(&photos_base_path.to_string(),
-                 &directory_path_of_item_file.to_str().unwrap().to_string(), &item);
+                self.process_item_file_item(photos_base_path,
+                    directory_path_of_item_file.to_str().unwrap(), item);
             }
         }
 
@@ -99,7 +99,7 @@ impl PhotoCatalogue {
 
     fn process_item_file_item(&mut self, photos_base_path: &str, item_file_directory_path: &str, item: &Item) {
 
-        if !item.has_value(&"res-0-img".to_string()) {
+        if !item.has_value("res-0-img") {
             // if we haven't got a full res property, ignore it completely
 		    return;
         }
@@ -170,7 +170,7 @@ impl PhotoCatalogue {
 
             let relative_image_path = combine_paths(&item_photo_base_path, &res_image_value);
 
-            let full_image_path = combine_paths(&photos_base_path, &relative_image_path);
+            let full_image_path = combine_paths(photos_base_path, &relative_image_path);
 
 //            println!("relative image path: {}\nfull_image_path: {}\n", relative_image_path, full_image_path);
 

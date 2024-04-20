@@ -1,6 +1,6 @@
 /*
  WebServe (Rust port)
- Copyright 2021 Peter Pearson.
+ Copyright 2021-2024 Peter Pearson.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  You may not use this file except in compliance with the License.
@@ -86,7 +86,7 @@ impl QueryParams {
         if want_drone {
             val |= SourceType::Drone as u32;
         }
-        return val;
+        val
     }
 }
 
@@ -143,7 +143,7 @@ impl PhotoQueryEngine {
 
         self.add_cached_result(&query_params, &new_result);
 
-        return new_result;
+        new_result
     }
 
     fn perform_query(&self, photos: &Vec<Arc<Box<PhotoItem>>>, query_params: &QueryParams) -> Arc<Box<PhotoResults>> {
@@ -162,7 +162,7 @@ impl PhotoQueryEngine {
                 }
             }
 
-            if !matches_permissions(query_params.permission_type, &photo) {
+            if !matches_permissions(query_params.permission_type, photo) {
                 continue;
             }
 
@@ -174,7 +174,7 @@ impl PhotoQueryEngine {
         }
 
         let new_result = Arc::new(results);
-        return new_result;
+        new_result
     }
 
     fn find_cached_result(&self, query_params: &QueryParams) -> Option<Arc<Box<PhotoResults>>> {
@@ -185,7 +185,7 @@ impl PhotoQueryEngine {
             }
         }
 
-        return None;
+        None
     }
 
     fn add_cached_result(&self, query_params: &QueryParams, results: &Arc<Box<PhotoResults>>) {
@@ -220,5 +220,5 @@ fn matches_permissions(permission: PermissionType, item: &PhotoItem) -> bool {
         return false;
     }
 
-    return true;
+    true
 }

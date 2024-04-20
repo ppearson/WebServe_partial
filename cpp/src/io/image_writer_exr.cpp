@@ -48,13 +48,15 @@ bool ImageWriterEXR::writeImage(const std::string& filePath, const Image3f& imag
 
 	Imf::FrameBuffer fb;
 
-	float* pRGBFloat = nullptr;
-	half* pRGBHalf = nullptr;
+	std::unique_ptr<float> RGBFloat;
+	std::unique_ptr<half> RGBHalf;
 
 	if (writeParams.bitDepth == eBitDepth_32)
 	{
 		// in theory, we can just use Image3f contents directly, but...
-		pRGBFloat = new float[width * height * 3];
+		RGBFloat.reset(new float[width * height * 3]);
+
+		float* pixelData = RGBFloat.get();
 
 		for (unsigned int y = 0; y < height; y++)
 		{
@@ -71,21 +73,23 @@ bool ImageWriterEXR::writeImage(const std::string& filePath, const Image3f& imag
 				float green = pRow->g;
 				float blue = pRow->b;
 
-				pRGBFloat[pixelPos++] = red;
-				pRGBFloat[pixelPos++] = green;
-				pRGBFloat[pixelPos] = blue;
+				pixelData[pixelPos++] = red;
+				pixelData[pixelPos++] = green;
+				pixelData[pixelPos] = blue;
 
 				pRow++;
 			}
 		}
 
-		fb.insert("R", Imf::Slice(pixelType, (char*)pRGBFloat, 3 * sizeof(float), 3 * width * sizeof(float)));
-		fb.insert("G", Imf::Slice(pixelType, (char*)pRGBFloat + sizeof(float), 3 * sizeof(float), 3 * width * sizeof(float)));
-		fb.insert("B", Imf::Slice(pixelType, (char*)pRGBFloat + 2 * sizeof(float), 3 * sizeof(float), 3 * width * sizeof(float)));
+		fb.insert("R", Imf::Slice(pixelType, (char*)pixelData, 3 * sizeof(float), 3 * width * sizeof(float)));
+		fb.insert("G", Imf::Slice(pixelType, (char*)pixelData + sizeof(float), 3 * sizeof(float), 3 * width * sizeof(float)));
+		fb.insert("B", Imf::Slice(pixelType, (char*)pixelData + 2 * sizeof(float), 3 * sizeof(float), 3 * width * sizeof(float)));
 	}
 	else
 	{
-		pRGBHalf = new half[width * height * 3];
+		RGBHalf.reset(new half[width * height * 3]);
+
+		half* pixelData = RGBHalf.get();
 
 		for (unsigned int y = 0; y < height; y++)
 		{
@@ -104,30 +108,29 @@ bool ImageWriterEXR::writeImage(const std::string& filePath, const Image3f& imag
 				half green = pRow->g;
 				half blue = pRow->b;
 
-				pRGBHalf[pixelPos++] = red;
-				pRGBHalf[pixelPos++] = green;
-				pRGBHalf[pixelPos] = blue;
+				pixelData[pixelPos++] = red;
+				pixelData[pixelPos++] = green;
+				pixelData[pixelPos] = blue;
 
 				pRow++;
 			}
 		}
 
-		fb.insert("R", Imf::Slice(pixelType, (char*)pRGBHalf, 3 * sizeof(half), 3 * width * sizeof(half)));
-		fb.insert("G", Imf::Slice(pixelType, (char*)pRGBHalf + sizeof(half), 3 * sizeof(half), 3 * width * sizeof(half)));
-		fb.insert("B", Imf::Slice(pixelType, (char*)pRGBHalf + 2 * sizeof(half), 3 * sizeof(half), 3 * width * sizeof(half)));
+		fb.insert("R", Imf::Slice(pixelType, (char*)pixelData, 3 * sizeof(half), 3 * width * sizeof(half)));
+		fb.insert("G", Imf::Slice(pixelType, (char*)pixelData + sizeof(half), 3 * sizeof(half), 3 * width * sizeof(half)));
+		fb.insert("B", Imf::Slice(pixelType, (char*)pixelData + 2 * sizeof(half), 3 * sizeof(half), 3 * width * sizeof(half)));
 	}
 
-	Imf::OutputFile file(filePath.c_str(), header);
-	file.setFrameBuffer(fb);
-	file.writePixels(height);
-
-	if (writeParams.bitDepth == eBitDepth_32)
+	try
 	{
-		delete [] pRGBFloat;
+		Imf::OutputFile file(filePath.c_str(), header);
+		file.setFrameBuffer(fb);
+		file.writePixels(height);
 	}
-	else
+	catch (const Iex::BaseExc& e)
 	{
-		delete [] pRGBHalf;
+		fprintf(stderr, "Error writing EXR file: '%s', : %s\n", filePath.c_str(), e.what());
+		return false;
 	}
 
 	return true;

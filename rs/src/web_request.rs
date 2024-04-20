@@ -1,6 +1,6 @@
 /*
  WebServe (Rust port)
- Copyright 2021 Peter Pearson.
+ Copyright 2021-2024 Peter Pearson.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  You may not use this file except in compliance with the License.
@@ -95,17 +95,15 @@ impl Default for WebRequest {
 
 fn extract_field_item(field_string: &str, start_pos: usize) -> &str {
     let value = &field_string[start_pos..];
-    return value;
+    value
 }
 
 impl WebRequest {
 
     pub fn create_from_string(request: &str) -> ParseResult {
-        let raw_request = request.clone();
-
         // TODO: doing it this way is very hacky as it means we lose blank lines (end of header, etc)...
 
-        let mut request_lines = raw_request.lines();
+        let mut request_lines = request.lines();
 
         // first line should contain main request of "<COMMAND> <PATH> <HTTP_VER>"...
         let first_line = request_lines.next().unwrap();
@@ -154,7 +152,7 @@ impl WebRequest {
         if question_mark_pos.is_some() {
             if request_type == HTTPRequestType::GET {
                 let get_params_string = &path[question_mark_pos.unwrap()+1..].to_string();
-                params = WebRequest::process_get_params(&get_params_string);
+                params = WebRequest::process_get_params(get_params_string);
             }
             path = path[..question_mark_pos.unwrap()].to_string();
         }
@@ -171,16 +169,16 @@ impl WebRequest {
         // TODO: and might need to be case-insensitive?
         for line in request_lines {
             if !found_host && line.starts_with("Host:") {
-                host_value = extract_field_item(&line, 5 + 1).to_string();
+                host_value = extract_field_item(line, 5 + 1).to_string();
                 found_host = true;
             }
             else if !found_cookie && line.starts_with("Cookie:") {
-                let cookie_value = extract_field_item(&line, 7 + 1).to_string();
+                let cookie_value = extract_field_item(line, 7 + 1).to_string();
                 cookies = WebRequest::process_cookie_string(&cookie_value);
                 found_cookie = true;
             }
             else if !found_connection && line.starts_with("Connection:") {
-                let connection_value = extract_field_item(&line, 11 + 1).to_string();
+                let connection_value = extract_field_item(line, 11 + 1).to_string();
                 match connection_value.as_str() {
                     "close" => {
                         connection_type = ConnectionType::ConnectionClose;
@@ -194,11 +192,11 @@ impl WebRequest {
             }
         }
 
-        Ok(WebRequest { raw_request: raw_request.to_string(), request_type, request_version, path, host_value, connection_type, params, cookies, ..Default::default() })
+        Ok(WebRequest { raw_request: request.to_string(), request_type, request_version, path, host_value, connection_type, params, cookies, ..Default::default() })
     }
 
     pub fn has_param(&self, param: &str) -> bool {
-        return self.params.contains_key(param);
+        self.params.contains_key(param)
     }
 
     pub fn get_param(&self, param: &str) -> String {
@@ -208,16 +206,16 @@ impl WebRequest {
             ret_value = self.params.get(param).unwrap().clone();
         }
 
-        return ret_value;
+        ret_value
     }
 
     pub fn get_param_as_uint(&self, param: &str, default: u32) -> u32 {
         let result = self.params.get(param);
         match result {
-            None => return default,
+            None => default,
             Some(val) => {
                 let uint_value = val.parse::<u32>().unwrap();
-                return uint_value;
+                uint_value
             }
         }
     }
@@ -239,11 +237,11 @@ impl WebRequest {
             params_string.push_str(&format!("{}={}", k, v));
         }
 
-        return params_string;
+        params_string
     }
 
     pub fn has_cookie(&self, cookie: &str) -> bool {
-        return self.cookies.contains_key(cookie);
+        self.cookies.contains_key(cookie)
     }
 
     pub fn get_cookie(&self, cookie: &str) -> String {
@@ -253,16 +251,16 @@ impl WebRequest {
             ret_value = self.cookies.get(cookie).unwrap().clone();
         }
 
-        return ret_value;
+        ret_value
     }
 
     pub fn get_cookie_as_uint(&self, cookie: &str, default: u32) -> u32 {
         let result = self.cookies.get(cookie);
         match result {
-            None => return default,
+            None => default,
             Some(val) => {
                 let uint_value = val.parse::<u32>().unwrap();
-                return uint_value;
+                uint_value
             }
         }
     }
@@ -272,10 +270,10 @@ impl WebRequest {
         match result {
             Some(val) => {
                 let uint_value = val.parse::<u32>().unwrap();
-                return uint_value;
+                uint_value
             }
             None => {
-                return self.get_cookie_as_uint(cookie_name, default);
+                self.get_cookie_as_uint(cookie_name, default)
             }   
         }
     }
@@ -286,7 +284,7 @@ impl WebRequest {
         for item in params_string.split('&') {
             if let Some((key, val)) = item.split_once('=') {
                 
-                let val = &string_helpers::simple_decode_string(&val);
+                let val = &string_helpers::simple_decode_string(val);
 
                 if !key.is_empty() && !val.is_empty() {
                     params.insert(key.to_string(), val.to_string());
@@ -294,7 +292,7 @@ impl WebRequest {
             }
         }
 
-        return params;
+        params
     }
 
     fn process_cookie_string(cookie_string: &str) -> BTreeMap<String, String> {
@@ -309,7 +307,7 @@ impl WebRequest {
             }
         }
 
-        return cookies;
+        cookies
     }
 }
 

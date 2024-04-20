@@ -341,9 +341,9 @@ Image3f* ImageReaderHEIF::readColour3fImage(const std::string& filePath) const
 				uint16_t green = *pSrcPixel++;
 				uint16_t blue = *pSrcPixel++;
 
-				red = reverseUInt16Bytes(red);
-				green = reverseUInt16Bytes(green);
-				blue = reverseUInt16Bytes(blue);
+				red = DataConversionHelpers::reverseUInt16Bytes(red);
+				green = DataConversionHelpers::reverseUInt16Bytes(green);
+				blue = DataConversionHelpers::reverseUInt16Bytes(blue);
 
 				pImageRow->r = (float)red * invConvert;
 				pImageRow->g = (float)green * invConvert;

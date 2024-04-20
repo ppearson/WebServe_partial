@@ -38,10 +38,46 @@ void sigintHandler(int signalVal)
 }
 #endif
 
-int main(int argc, char** arv)
+void printHelp()
+{
+	fprintf(stderr, "webserve\n\n");
+	fprintf(stderr, "webserve\n");
+	fprintf(stderr, "webserve --config [config_path]\n");
+}
+
+int main(int argc, char** argv)
 {
 	Configuration config;
-	config.autoLoadFile();
+
+	if (argc == 2 && strcmp(argv[1], "--help") == 0)
+	{
+		printHelp();
+		return 0;
+	}
+
+	bool haveLoadedConfig = false;
+
+	if (argc == 3)
+	{
+		if (strcmp(argv[1], "--config") == 0)
+		{
+			std::string configPath = argv[2];
+			if (!config.loadFromFile(configPath))
+			{
+				fprintf(stderr, "Error loading config file: %s\n", configPath.c_str());
+				return -1;
+			}
+			else
+			{
+				haveLoadedConfig = true;
+			}
+		}
+	}
+
+	if (!haveLoadedConfig)
+	{
+		config.autoLoadFile();
+	}
 
 	WebServerService web;
 	if (!web.configure(config))

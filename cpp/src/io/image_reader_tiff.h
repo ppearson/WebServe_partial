@@ -34,6 +34,13 @@ class ImageReaderTIFF : public ImageReader
 public:
 	ImageReaderTIFF();
 
+	virtual bool getImageDetails(const std::string& filePath, bool extractEXIF, ImageDetails& imageDetails) const override;
+
+	virtual bool extractEXIFMetaData(const std::string& filePath, RawEXIFMetaData& exifData) const override;
+
+	virtual Image3f* readColour3fImage(const std::string& filePath) const override;
+
+protected:
 	struct TiffInfo
 	{
 		TiffInfo() : imageHeight(0), imageWidth(0), rowsPerStrip(0), bitDepth(0), channelCount(0), orientation(0),
@@ -72,13 +79,6 @@ public:
 
 	static bool readInfo(TIFF* pTiff, TiffInfo& tiffInfo);
 
-	virtual bool getImageDetails(const std::string& filePath, bool extractEXIF, ImageDetails& imageDetails) const override;
-
-	virtual bool extractEXIFMetaData(const std::string& filePath, RawEXIFMetaData& exifData) const override;
-
-	virtual Image3f* readColour3fImage(const std::string& filePath) const override;
-
-protected:
 	static Image3f* readScanlineColourImage(const std::string& filePath, TIFF* pTiff, TiffInfo& tiffInfo);
 	static Image3f* readTiledColourImage(const std::string& filePath, TIFF* pTiff, TiffInfo& tiffInfo);
 };

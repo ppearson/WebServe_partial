@@ -1,6 +1,6 @@
 /*
  WebServe (Rust port)
- Copyright 2021 Peter Pearson.
+ Copyright 2021-2024 Peter Pearson.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  You may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ use std::sync::Arc;
 
 use chrono::Datelike;
 
-use super::photo_item::{PhotoItem};
+use super::photo_item::PhotoItem;
 
 #[derive(Clone, Debug, Eq)]
 pub struct YearMonth {
@@ -48,14 +48,14 @@ impl PartialOrd for YearMonth {
     fn partial_cmp(&self, other: &Self) -> Option<cmp::Ordering> {
         // TODO: less verbose equiv?
         if self.year == other.year && self.month == other.month {
-            return Some(cmp::Ordering::Equal);
+            Some(cmp::Ordering::Equal)
         }
         else {
             if self.year == other.year {
-                return Some(self.month.cmp(&other.month));
+                Some(self.month.cmp(&other.month))
             }
             else {
-                return Some(self.year.cmp(&other.year));
+                Some(self.year.cmp(&other.year))
             }
         }
     }
@@ -63,7 +63,7 @@ impl PartialOrd for YearMonth {
 
 impl Ord for YearMonth {
     fn cmp(&self, other: &Self) -> cmp::Ordering {
-        return self.partial_cmp(&other).unwrap();
+        return self.partial_cmp(other).unwrap();
     }
 }
 
@@ -123,7 +123,7 @@ impl PhotoResultsDateAccessor {
 
                 let mut year_index = self.year_month_indicies.get_mut(&year);
                 let months_for_year = year_index.as_mut().unwrap();
-                months_for_year.push(month as u32);
+                months_for_year.push(month);
             }
             else {
                 let items = year_month_item.as_mut().unwrap();
@@ -134,21 +134,21 @@ impl PhotoResultsDateAccessor {
 
     pub fn get_list_of_years(&self) -> Vec<u32> {
         let list_of_years = self.year_month_indicies.keys().cloned().collect();
-        return list_of_years;
+        list_of_years
     }
 
     pub fn get_list_of_months_for_year(&self, year: u32) -> &Vec<u32> {
         let months = self.year_month_indicies.get(&year).unwrap();
-        return months;
+        months
     }
 
     pub fn get_photos_for_year(&self, year: u32) -> &Vec<Arc<Box<PhotoItem>>> {
         let photos = self.year_items.get(&year).unwrap();
-        return photos;
+        photos
     }
 
     pub fn get_photos_for_month_year(&self, year: u32, month: u32) -> &Vec<Arc<Box<PhotoItem>>> {
         let photos = self.year_month_items.get(&YearMonth::new(year, month)).unwrap();
-        return photos;
+        photos
     }
 }

@@ -1,6 +1,6 @@
 /*
  WebServe (Rust port)
- Copyright 2021 Peter Pearson.
+ Copyright 2021-2024 Peter Pearson.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  You may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ impl PhotoRepresentations {
         for repr in &self.representations {
             let max_dim = std::cmp::max(repr.width, repr.height);
 
-            if max_dim >= min_val as u16 && (max_dim as u16) < smallest_val_found {
+            if max_dim >= min_val as u16 && max_dim < smallest_val_found {
                 smallest_val_found = max_dim;
                 smallest_index = index;
             }
@@ -65,10 +65,10 @@ impl PhotoRepresentations {
         }
 
         if smallest_index == -1 {
-            return None;
+            None
         }
         else {
-            return Some(&self.representations[smallest_index as usize]);
+            Some(&self.representations[smallest_index as usize])
         }
     }
 
@@ -100,6 +100,6 @@ impl PhotoRepresentations {
             return Some(&self.representations[largest_index as usize]);
         }
 
-        return None;
+        None
     }
 }

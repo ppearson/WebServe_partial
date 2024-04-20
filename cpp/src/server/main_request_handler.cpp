@@ -488,6 +488,18 @@ bool MainRequestHandler::configureSubRequestHandlers(const Configuration& config
 				}
 			}
 		}
+		else if (siteDefConfigType.empty() && siteDefConfigValue.empty() && siteConfig.m_definition == "*")
+		{
+			// allow a single fallback type without a config value (i.e. no ':' char in the string)
+			if (m_fallbackHandler)
+			{
+				logger.error("A wildcard fallback handler already exists.");
+			}
+			else
+			{
+				m_fallbackHandler = pNewRequestHandler;
+			}
+		}
 		else
 		{
 			logger.error("Invalid config definition specified for site: %s", siteConfig.m_name.c_str());
@@ -498,5 +510,6 @@ bool MainRequestHandler::configureSubRequestHandlers(const Configuration& config
 		}
 	}
 	
+	// TODO: what are we doing about return codes here? some of them likely should be hard return falses, others might be soft failures...
 	return true;
 }

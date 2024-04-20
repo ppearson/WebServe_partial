@@ -132,9 +132,9 @@ bool ImageWriterPNG::writeImage(const std::string& filePath, const Image3f& imag
 				uint16_t blue = (uint16_t)(MathsHelpers::clamp(b) * 65535.0f);
 
 				// TODO: this reversing should only be done on marchs which need it...
-				*typedRow++ = reverseUInt16Bytes(red);
-				*typedRow++ = reverseUInt16Bytes(green);
-				*typedRow++ = reverseUInt16Bytes(blue);
+				*typedRow++ = DataConversionHelpers::reverseUInt16Bytes(red);
+				*typedRow++ = DataConversionHelpers::reverseUInt16Bytes(green);
+				*typedRow++ = DataConversionHelpers::reverseUInt16Bytes(blue);
 
 				pRow++;
 			}

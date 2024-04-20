@@ -1,6 +1,6 @@
 /*
  WebServe (Rust port)
- Copyright 2021 Peter Pearson.
+ Copyright 2021-2024 Peter Pearson.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  You may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ pub struct WebServerServiceImpl {
 
 impl WebServerService {
     pub fn init(config: &Configuration) -> WebServerService {
-        let web_server_impl = WebServerServiceImpl{ config: config.clone(), request_handler: MainRequestHandler::init(&config) };
+        let web_server_impl = WebServerServiceImpl{ config: config.clone(), request_handler: MainRequestHandler::init(config) };
         WebServerService { inner: Arc::new(RwLock::new(web_server_impl))}
     }
 

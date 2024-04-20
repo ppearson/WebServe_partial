@@ -227,9 +227,9 @@ Image3f* ImageReaderPNG::readColour3fImage(const std::string& filePath) const
 				uint16_t blue = *typedData++;
 				typedData++;
 
-				red = reverseUInt16Bytes(red);
-				green = reverseUInt16Bytes(green);
-				blue = reverseUInt16Bytes(blue);
+				red = DataConversionHelpers::reverseUInt16Bytes(red);
+				green = DataConversionHelpers::reverseUInt16Bytes(green);
+				blue = DataConversionHelpers::reverseUInt16Bytes(blue);
 
 				pImageRow->r = (float)red * invShortConvert;
 				pImageRow->g = (float)green * invShortConvert;

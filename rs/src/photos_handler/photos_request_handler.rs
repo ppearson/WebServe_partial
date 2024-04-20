@@ -1,6 +1,6 @@
 /*
  WebServe (Rust port)
- Copyright 2021 Peter Pearson.
+ Copyright 2021-2024 Peter Pearson.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  You may not use this file except in compliance with the License.
@@ -23,16 +23,16 @@ use crate::web_response_advanced::{WebResponseAdvancedBinaryFile, SendAdvancedRe
 use crate::web_response_generator::{GetResponseString, WebResponseGeneratorFile,
                                     WebResponseGeneratorTemplateFile};
 use crate::web_server_common::RequestConnection;
-use crate::photos_handler::photos_common::{DateParams};
+use crate::photos_handler::photos_common::DateParams;
 use crate::photos_handler::photo_catalogue::PhotoCatalogue;
-use crate::photos_handler::photos_html_helpers::{GenMainSitenavCodeParams};
+use crate::photos_handler::photos_html_helpers::GenMainSitenavCodeParams;
 use crate::photos_handler::photos_html_helpers;
 use crate::photos_handler::photo_query_engine::{*};
-use crate::file_helpers::{combine_paths};
-use crate::uri_helpers::{split_first_level_directory_and_remainder};
+use crate::file_helpers::combine_paths;
+use crate::uri_helpers::split_first_level_directory_and_remainder;
 
 use std::io::prelude::*;
-use std::path::{Path};
+use std::path::Path;
 
 pub struct PhotosRequestHandler {
     photos_base_path:                   String,
@@ -82,7 +82,7 @@ impl SubRequestHandler for PhotosRequestHandler {
 			self.relative_path = "/".to_string();
         }
         
-        return !self.photos_base_path.is_empty() && !self.main_web_content_path.is_empty();
+        !self.photos_base_path.is_empty() && !self.main_web_content_path.is_empty()
     }
 
     fn handle_request(&self, connection: &RequestConnection, request: &WebRequest, remaining_uri: &str) -> HandleRequestResult {
@@ -105,7 +105,7 @@ impl SubRequestHandler for PhotosRequestHandler {
                 full_path = combine_paths(&self.photos_base_path, request_path);
 
                 let wrg = WebResponseAdvancedBinaryFile::new(&full_path);
-                if !wrg.send_response(&connection) {
+                if !wrg.send_response(connection) {
                     // TODO: bit more verification this is the case here?
                     return HandleRequestResult::RequestHandledDisconnect;
                 }
@@ -128,7 +128,7 @@ impl SubRequestHandler for PhotosRequestHandler {
             }
             stream.flush().unwrap();
 
-            return HandleRequestResult::RequestHandledOK;
+            return HandleRequestResult::RequestHandledOK
         }
 
         // otherwise, work out if we have a further first-level sub-directory...
@@ -136,7 +136,7 @@ impl SubRequestHandler for PhotosRequestHandler {
         let mut remainder_uri = String::new();
 
         let next_level;
-        if split_first_level_directory_and_remainder(&request_path, &mut directory, &mut remainder_uri) {
+        if split_first_level_directory_and_remainder(request_path, &mut directory, &mut remainder_uri) {
             next_level = directory;
         }
         else {
@@ -149,13 +149,13 @@ impl SubRequestHandler for PhotosRequestHandler {
 
         // TODO: authentication...
         if next_level == "photostream" {
-            return self.handle_photostream_request(&connection, request);
+            return self.handle_photostream_request(connection, request);
         }
         else if next_level == "dates" {
-            return self.handle_dates_request(&connection, request, &remainder_uri);
+            return self.handle_dates_request(connection, request, &remainder_uri);
         }
         else if next_level == "locations" {
-            return self.handle_locations_request(&connection, request);
+            return self.handle_locations_request(connection, request);
         }
 
         // otherwise, handle just general root of photos...
@@ -175,7 +175,7 @@ impl SubRequestHandler for PhotosRequestHandler {
         }
         stream.flush().unwrap();
 
-        return HandleRequestResult::RequestHandledOK;
+        HandleRequestResult::RequestHandledOK
     }
 }
 
@@ -260,7 +260,7 @@ impl PhotosRequestHandler {
         stream.flush().unwrap();
         stream.flush().unwrap();
 
-        return HandleRequestResult::RequestHandledOK;
+        HandleRequestResult::RequestHandledOK
     }
 
     fn handle_dates_request(&self, connection: &RequestConnection, request: &WebRequest, remainder_uri: &str) -> HandleRequestResult {
@@ -309,7 +309,7 @@ impl PhotosRequestHandler {
             let wrg = WebResponseGeneratorTemplateFile::from(&combine_paths(&self.main_web_content_path, "dates_slideshow.tmpl"),
                                     &self.html_base_href)
                                     .add_field(&site_nav_header_html)
-                                    .add_field(&content_html)
+                                    .add_field(content_html)
                                     .add_field(&photos_list_js);
 
             response = wrg.get_response_string();
@@ -361,7 +361,7 @@ impl PhotosRequestHandler {
         }
         stream.flush().unwrap();
 
-        return HandleRequestResult::RequestHandledOK;
+        HandleRequestResult::RequestHandledOK
     }
 
     fn handle_locations_request(&self, connection: &RequestConnection, request: &WebRequest) -> HandleRequestResult {
@@ -385,7 +385,7 @@ impl PhotosRequestHandler {
         
         let location_path = request.get_param("locationPath");
 
-        let location_bar_html = photos_html_helpers::get_locations_location_bar_html(&request);
+        let location_bar_html = photos_html_helpers::get_locations_location_bar_html(request);
 
         let mut response = String::new();
 
@@ -411,7 +411,7 @@ impl PhotosRequestHandler {
             let wrg = WebResponseGeneratorTemplateFile::from(&combine_paths(&self.main_web_content_path, "locations_slideshow.tmpl"),
                                     &self.html_base_href)
                                     .add_field(&site_nav_header_html)
-                                    .add_field(&content_and_pagination_html)
+                                    .add_field(content_and_pagination_html)
                                     .add_field(&photos_list_js);
 
             response = wrg.get_response_string();
@@ -447,7 +447,7 @@ impl PhotosRequestHandler {
                         slideshow_url = format!("locations/?{}&slideshow=1&", current_page_params);
                     }
 
-                    photos_list_html = photos_html_helpers::get_simple_image_list_within_custom_div_tag_with_style(&photos,
+                    photos_list_html = photos_html_helpers::get_simple_image_list_within_custom_div_tag_with_style(photos,
                         "gallery_item", start_index, per_page, min_thumbnail_size, lazy_load, &slideshow_url);
         
                     let wrg = WebResponseGeneratorTemplateFile::from(&combine_paths(&self.main_web_content_path, "locations_gallery.tmpl"),
@@ -468,7 +468,7 @@ impl PhotosRequestHandler {
  //           let guard = photo_results.location_accessor.read().unwrap();
 //            let photos = guard.get_photos_for_location(&location_path);
 
-            let content_html = photos_html_helpers::get_locations_overview_page_html(&photo_results, &request);
+            let content_html = photos_html_helpers::get_locations_overview_page_html(&photo_results, request);
 
             let wrg = WebResponseGeneratorTemplateFile::from(&combine_paths(&self.main_web_content_path, "locations_overview.tmpl"),
                                             &self.html_base_href)
@@ -487,7 +487,7 @@ impl PhotosRequestHandler {
         }
         stream.flush().unwrap();
 
-        return HandleRequestResult::RequestHandledOK;
+        HandleRequestResult::RequestHandledOK
     }
 }
 
@@ -532,5 +532,5 @@ fn get_date_params_from_request(request: &WebRequest, check_url_path: bool, rema
         }
     }
 
-    return date_params;
+    date_params
 }

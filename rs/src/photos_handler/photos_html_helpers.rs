@@ -1,6 +1,6 @@
 /*
  WebServe (Rust port)
- Copyright 2021 Peter Pearson.
+ Copyright 2021-2024 Peter Pearson.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  You may not use this file except in compliance with the License.
@@ -17,14 +17,14 @@
 */
 
 use std::sync::Arc;
-use super::photo_item::{PhotoItem};
+use super::photo_item::PhotoItem;
 use std::fs;
 
 use crate::file_helpers::combine_paths;
 use crate::string_helpers::{self, simple_encode_string};
 use crate::web_request::WebRequest;
-use crate::photos_handler::photos_common::{DateParams};
-use crate::photos_handler::photo_results::{PhotoResults};
+use crate::photos_handler::photos_common::DateParams;
+use crate::photos_handler::photo_results::PhotoResults;
 
 pub struct GenMainSitenavCodeParams {
     add_play_slideshow_icon:            bool,
@@ -78,7 +78,7 @@ pub fn generate_main_sitenav_code(params: GenMainSitenavCodeParams) -> String {
 
     final_html.push_str("</div>\n");
 
-    return final_html;
+    final_html
 }
 
 fn load_template_snippit(filename: &str) -> String {
@@ -86,10 +86,10 @@ fn load_template_snippit(filename: &str) -> String {
     // TODO: error handling...
     let res = fs::read_to_string(filename);
     if res.is_ok() {
-        return res.unwrap();
+        res.unwrap()
     }
     else {
-        return "".to_string();
+        "".to_string()
     }
 }
 
@@ -160,7 +160,7 @@ pub fn get_pagination_code(url: &str, web_request: &WebRequest, total_count: usi
 
     final_html.push_str("</div>\n");
 
-    return final_html;
+    final_html
 }
 
 pub fn get_simple_image_list_within_custom_div_tag_with_style(photos: &Vec<Arc<Box<PhotoItem>>>, div_tag: &str, start_index: usize,
@@ -169,7 +169,7 @@ pub fn get_simple_image_list_within_custom_div_tag_with_style(photos: &Vec<Arc<B
     
     let mut final_html = String::new();
 
-    if start_index as usize >= photos.len() {
+    if start_index >= photos.len() {
         return final_html;
     }
 
@@ -225,7 +225,7 @@ pub fn get_simple_image_list_within_custom_div_tag_with_style(photos: &Vec<Arc<B
         index += 1;
     }
 
-    return final_html;
+    final_html
 }
 
 pub fn get_photoswipe_js_item_list(photos: &Vec<Arc<Box<PhotoItem>>>, start_index: usize, per_page: usize) -> String {
@@ -259,7 +259,7 @@ pub fn get_photoswipe_js_item_list(photos: &Vec<Arc<Box<PhotoItem>>>, start_inde
 
     final_js.push_str("\t];\n");
 
-    return final_js;
+    final_js
 }
 
 const MONTH_NAMES: &[&str] = &["January", "February", "March", "April", "May", "June",
@@ -318,7 +318,7 @@ pub fn get_dates_datesbar_html(photos: &PhotoResults, active_year: u32, active_m
         final_html.push_str(" </div>\n");
     }
 
-    return final_html;
+    final_html
 }
 
 pub fn get_dates_photos_content_html(photo_results: &PhotoResults, date_params: &DateParams, request: &WebRequest, overall_lazy_loading: bool,
@@ -355,7 +355,7 @@ pub fn get_dates_photos_content_html(photo_results: &PhotoResults, date_params: 
                 thumbnail_repr = thumbnail_repr_bigger.unwrap();
             }
 
-            let style_string = format!("flex-basis: {}px; flex-grow: {};", (main_width * thumbnail_repr.aspect_ratio as f32) as u32,
+            let style_string = format!("flex-basis: {}px; flex-grow: {};", (main_width * thumbnail_repr.aspect_ratio) as u32,
                                                                                 thumbnail_repr.aspect_ratio);
 
             final_html.push_str(&format!(r#"<div class="gallery_item" style="{}\">"#, style_string));
@@ -422,7 +422,7 @@ pub fn get_dates_photos_content_html(photo_results: &PhotoResults, date_params: 
                     thumbnail_repr = thumbnail_repr_bigger.unwrap();
                 }
 
-                let style_string = format!("flex-basis: {}px; flex-grow: {};", (main_width * thumbnail_repr.aspect_ratio as f32) as u32,
+                let style_string = format!("flex-basis: {}px; flex-grow: {};", (main_width * thumbnail_repr.aspect_ratio) as u32,
                                                                                     thumbnail_repr.aspect_ratio);
 
                 final_html.push_str(&format!(r#"<div class="gallery_item" style="{}\">"#, style_string));
@@ -459,7 +459,7 @@ pub fn get_dates_photos_content_html(photo_results: &PhotoResults, date_params: 
 
     }
 
-    return final_html;
+    final_html
 }
 
 // could just have passed through the locationPath value directly, but we might want to do something a bit different
@@ -485,7 +485,7 @@ pub fn get_locations_location_bar_html(request: &WebRequest) -> String {
     }
 
     final_html.push_str("</div></div></div>\n");
-    return final_html;
+    final_html
 }
 
 pub fn get_locations_overview_page_html(photo_results: &PhotoResults, request: &WebRequest) -> String {
@@ -537,5 +537,5 @@ pub fn get_locations_overview_page_html(photo_results: &PhotoResults, request: &
         // TODO: display some photos...
     }
 
-    return final_html;
+    final_html
 }

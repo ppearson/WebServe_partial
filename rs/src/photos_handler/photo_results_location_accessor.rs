@@ -1,6 +1,6 @@
 /*
  WebServe (Rust port)
- Copyright 2021 Peter Pearson.
+ Copyright 2021-2024 Peter Pearson.
 
  Licensed under the Apache License, Version 2.0 (the "License");
  You may not use this file except in compliance with the License.
@@ -18,11 +18,9 @@
 
 use std::collections::BTreeMap;
 
-use std::cmp;
-
 use std::sync::Arc;
 
-use super::photo_item::{PhotoItem};
+use super::photo_item::PhotoItem;
 
 #[derive(Clone, Debug)]
 struct LocationHierarchyItem {
@@ -42,7 +40,7 @@ impl LocationHierarchyItem {
 
 #[derive(Clone, Debug)]
 pub struct PhotoResultsLocationAccessor {
-    items:                  Vec<Box<LocationHierarchyItem>>,
+    items:                  Vec<LocationHierarchyItem>,
 
     location_lookup:        BTreeMap<String, u32>
 }
@@ -83,7 +81,7 @@ impl PhotoResultsLocationAccessor {
                         // we didn't find it, so we need to create it...
                         let new_item_index = self.items.len();
 
-                        self.items.push(Box::new(LocationHierarchyItem::new(comp_string)));
+                        self.items.push(LocationHierarchyItem::new(comp_string));
 
                         self.location_lookup.insert(comp_string.to_string(), new_item_index as u32);
 
@@ -93,7 +91,7 @@ impl PhotoResultsLocationAccessor {
                 else {
                     // do the remaining items...
 
-                    let previous_level_item_index = new_temp_items[level - 1 as usize];
+                    let previous_level_item_index = new_temp_items[level - 1_usize];
                     let previous_level_item = &self.items[previous_level_item_index];
                     let find_comp = previous_level_item.sub_location_lookup.get(comp_string);
 
@@ -107,7 +105,7 @@ impl PhotoResultsLocationAccessor {
                         // we didn't find it, so we need to create it...
                         let new_item_index = self.items.len();
 
-                        self.items.push(Box::new(LocationHierarchyItem::new(comp_string)));
+                        self.items.push(LocationHierarchyItem::new(comp_string));
 
                         let previous_level_item = &mut self.items[previous_level_item_index];
                         previous_level_item.sub_location_lookup.insert(comp_string.to_string(), new_item_index as u32);
@@ -163,7 +161,7 @@ impl PhotoResultsLocationAccessor {
             return Some(&item_val.photos);
         }
 
-        return None;
+        None
     }
 
     pub fn get_sub_locations_for_location(&self, location_path: &str) -> Vec<String> {
@@ -210,6 +208,6 @@ impl PhotoResultsLocationAccessor {
             }
         }
 
-        return sub_locations;
+        sub_locations
     }
 }
